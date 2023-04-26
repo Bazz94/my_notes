@@ -1,60 +1,60 @@
 import * as React from 'react';
-import { Typography, Container, CardActionArea} from "@mui/material";
-import ListItemText from '@mui/material/ListItemText';
-import ListItem from '@mui/material/ListItem';
-import List from '@mui/material/List';
-import Card from '@mui/material/Card';
-import Button from '@mui/material/Button';
+import { Typography, Container } from "@mui/material";
 import {useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import NoteListComponent from '../components/noteList.js';
+import TagListComponent from '../components/tagList.js';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+
 
 
 export default function Notes() {
   var [noteList, setNoteList] = useState([]);
+  var [tagList, setTagList] = useState([]);
+
 
   function addNote() {
-    noteList.push({title: 'The Title', subtext: 'The subtext'});
+    // Open note edit popup
+    noteList.push({ title: 'The Title', subtext: 'The subtext', content: 'The contents', id: uuidv4() });
     console.log(noteList);
     setNoteList(remakeArray(noteList));
   }
 
   function addTag() {
+    // Open tag edit popup
+    tagList.push({ name: 'The Tag', id: uuidv4() });
+    console.log(tagList);
+    setTagList(remakeArray(tagList));
+  }
 
+  function handleTag(name) {
+    // Filer list by tag name
+  }
+
+  function editTags() {
+    // Disable tag buttons and allow the name to be edited and tag to be removed
   }
 
   return (
-    <div>
-      <Container maxWidth="sm">
-        <Typography variant="h1">
+      <Container maxWidth="false"  
+        sx={{ 
+          width: 'clamp(350px,80%,60rem)', 
+          minHeight: '100vh', // weird
+          padding: '1rem',
+        }}>
+        <Typography variant="h1" sx={{margin: '1rem', textAlign: 'center'}} >
           My Notes
         </Typography>
-        <Container maxWidth="sm">
-          <Button variant="contained"
-            onClick={addNote}>
-            New Note
-          </Button>
-          <Button variant="outlined"
-            onClick={addTag}>
-            New Tag
-            </Button>
-        </Container>
-        <Container maxWidth="sm">
-          <List dense={true}> 
-            {noteList.map((item) => (
-              <Card sx={{ minWidth: 200 }}>
-                <CardActionArea>
-                  <ListItem>
-                    <ListItemText
-                      primary={item.title}
-                      secondary={item.subtext}
-                    />
-                  </ListItem>
-                </CardActionArea>
-              </Card>
-            ))}
-          </List>
-        </Container>
+        <Stack direction="row" spacing={2} sx={{ minHeight: '58.2vh'}}>
+          <Box sx={{ width: '20%' }}>
+            <TagListComponent addNote={addNote} editTags={editTags} tags={tagList} handleTag={handleTag} />
+          </Box>
+          <Box sx={{ width: '80%' }}>
+            <NoteListComponent notes={noteList} />
+          </Box>
+        </Stack>
       </Container>
-    </div>
   )
 }
 
