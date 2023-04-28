@@ -1,11 +1,16 @@
 import * as React from 'react';
 import { Typography, Container } from "@mui/material";
-import {useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import NoteListComponent from '../components/noteList.js';
 import TagListComponent from '../components/tagList.js';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import NoteDialog from './noteDialog.js';
+
+var data = [{ title: 'Note 1', content: 'Content 1', id: uuidv4()},
+            { title: 'Note 2', content: 'Content 2', id: uuidv4()},
+            { title: 'Note 3', content: 'Content 3', id: uuidv4()}];
 
 
 
@@ -13,27 +18,61 @@ export default function Notes() {
   var [noteList, setNoteList] = useState([]);
   var [tagList, setTagList] = useState([]);
 
+  useEffect(() => {
+    setNoteList(data);
+    // Set tagList
+  }, [])
 
-  function addNote() {
-    // Open note edit popup
-    noteList.push({ title: 'The Title', subtext: 'The subtext', content: 'The contents', id: uuidv4() });
-    console.log(noteList);
-    setNoteList(remakeArray(noteList));
+  function handleNewNote() {
+    noteOpen();
   }
 
-  function addTag() {
-    // Open tag edit popup
-    tagList.push({ name: 'The Tag', id: uuidv4() });
-    console.log(tagList);
-    setTagList(remakeArray(tagList));
+  function handleNoteClick(id) {
+    noteOpen();
+    console.log(id);
   }
+
+  // function handleNewTag() {
+  //   // Open tag edit popup
+  //   tagList.push({ name: 'The Tag', id: uuidv4() });
+  //   console.log(tagList);
+  //   setTagList(remakeArray(tagList));
+  // }
 
   function handleTag(name) {
     // Filer list by tag name
   }
 
-  function editTags() {
+  function handleEditTags() {
     // Disable tag buttons and allow the name to be edited and tag to be removed
+  }
+
+  // Note Dialog
+  const [openNote, setNoteOpen] = useState(false);
+  const [titleValue, setTitle] = useState('');
+  const [contentValue, setContent] = useState('');
+
+  const noteOpen = () => {
+    setNoteOpen(true);
+  };
+
+  const noteCancel = () => {
+    setNoteOpen(false);
+    setTitle('');
+    setContent('');
+  };
+
+  function SubmitNote() {
+    if (titleValue === '') {
+      return false;
+    }
+    noteList.push({ title: titleValue, content: contentValue, id: uuidv4() });
+    console.log(noteList);
+    setNoteList(remakeArray(noteList));
+    // Add to db
+    setNoteOpen(false);
+    setTitle('');
+    setContent('');
   }
 
   return (
@@ -48,12 +87,21 @@ export default function Notes() {
         </Typography>
         <Stack direction="row" spacing={2} sx={{ minHeight: '58.2vh'}}>
           <Box sx={{ width: '20%' }}>
-            <TagListComponent addNote={addNote} editTags={editTags} tags={tagList} handleTag={handleTag} />
+          <TagListComponent addNote={handleNewNote} editTags={handleEditTags} tags={tagList} handleTag={handleTag} />
           </Box>
           <Box sx={{ width: '80%' }}>
-            <NoteListComponent notes={noteList} />
+          <NoteListComponent notes={noteList} handleNoteClick={handleNoteClick} />
           </Box>
         </Stack>
+      <NoteDialog 
+        openNote={openNote} 
+        handleNoteCancel={noteCancel}
+        handleNoteOk={SubmitNote}
+        titleValue={titleValue}
+        setTitle={setTitle}
+        contentValue={contentValue}
+        setContent={setContent}
+      />
       </Container>
   )
 }
