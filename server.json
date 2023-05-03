@@ -1,0 +1,26 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "cakemix",
+      "email": "cake@email.com",
+      "notes": [
+        {
+          "title": "Title 1",
+          "content": "The content 1...",
+          "id": "123412343"
+        },
+        {
+          "title": "Title 2",
+          "content": "The content 2...",
+          "id": "123412342"
+        },
+        {
+          "title": "Title 3",
+          "content": "The content 3...",
+          "id": "123456781"
+        }
+      ]
+    }
+  ]
+}

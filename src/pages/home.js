@@ -19,8 +19,14 @@ export default function Notes() {
   var [tagList, setTagList] = useState([]);
 
   useEffect(() => {
-    setNoteList(data);
-    // Set tagList
+    fetch('http://localhost:8000/users/1?notes')
+      .then(response => {
+        return response.json();
+      })
+      .then(data => {
+        setNoteList(data);
+        console.log(data);
+      });
   }, [])
 
   function handleNewNote() {
@@ -30,6 +36,7 @@ export default function Notes() {
   function handleNoteClick(id) {
     noteOpen();
     console.log(id);
+    // Show note data according to id
   }
 
   // function handleNewTag() {
