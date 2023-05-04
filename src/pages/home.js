@@ -80,19 +80,20 @@ export default function Notes() {
     setId(null);
   }
 
-  // TagListComponent methods
-  const [tagOpen, setTagOpen] = useState(false);
+  // TagListComponentComponent methods
   var [tagList, setTagList] = useState([]);
-  const [tagName, setTagName] = useState('');
+
+  function handleEditTags() {
+    setTagOpen(true);
+  }
 
   function handleTag(name) {
     // Filer list by tag name
   }
 
-  function handleEditTags() {
-    setTagOpen(true);
-    
-  }
+  // TagDialogComponent methods
+  const [tagOpen, setTagOpen] = useState(false);
+  const [tagName, setTagName] = useState('');
 
   return (
       <Container maxWidth="false"  
