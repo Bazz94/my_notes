@@ -51,7 +51,7 @@ export default function NoteDialog({
         </DialogContent>
         <DialogActions>
           <Button onClick={handleNoteCancel}>Cancel</Button>
-          <Button onClick={handleNoteOkLocal}>Ok</Button>
+          <Button onClick={handleNoteCancel}>Ok</Button>
         </DialogActions>
       </Dialog>
     </div>

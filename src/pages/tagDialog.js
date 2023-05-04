@@ -1,45 +1,42 @@
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useState } from 'react';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 
-export default function TagDialog({ openNote, handleNoteClose }) {
-  const [open, setOpen] = useState(false);
+export default function TagDialog(
+  { tagOpen, setTagOpen, tagList,  tagName, setTagName }) {
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  function handleClose() {
+    setTagOpen(false);
+  }
 
   return (
     <div>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Subscribe</DialogTitle>
+      <Dialog open={tagOpen} maxWidth='sm' fullWidth={true}>
+        <DialogTitle>Tags</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            To subscribe to this website, please enter your email address here. We
-            will send updates occasionally.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Email Address"
-            type="email"
-            fullWidth
-            variant="standard"
-          />
+          <Stack>
+            {tagList.map((tag) => (
+              <TextField key={tag.id}
+                autoFocus
+                margin="normal"
+                id="name"
+                type="text"
+                fullWidth
+                variant="standard"
+                size="medium"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+              />
+            ))}
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleClose}>Subscribe</Button>
+          <Button onClick={handleClose}>Ok</Button>
         </DialogActions>
       </Dialog>
     </div>

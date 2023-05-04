@@ -17,7 +17,7 @@ export default function tagList({ addNote, editTags, tags, handleTag }) {
           Edit Tags
         </Button>
         {tags.map((tag) => (
-          <Button variant="outlined"
+          <Button variant="outlined" key={tag.id}
             onClick={() => {
               handleTag(tag.name);
             }}>

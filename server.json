@@ -6,21 +6,27 @@
       "email": "cake@email.com",
       "notes": [
         {
+          "id": "16c7f21e-ea8c-11ed-a05b-0242ac120003",
           "title": "Title 1",
-          "content": "The content 1...",
-          "id": "123412343"
+          "content": "Et ipsum eos no sea voluptua, et sanctus eirmod at et consetetur at amet. Kasd et dolore sed no et.."
         },
         {
+          "id": "2040e094-ea8c-11ed-a05b-0242ac120003",
           "title": "Title 2",
-          "content": "The content 2...",
-          "id": "123412342"
+          "content": "Lorem erat stet dolores no et sit, lorem consetetur stet nonumy duo no ipsum magna clita magna. Kasd lorem no."
         },
         {
+          "id": "2bf8b452-ea8c-11ed-a05b-0242ac120003",
           "title": "Title 3",
-          "content": "The content 3...",
-          "id": "123456781"
+          "content": "Eos sit sit lorem sanctus et dolores vero kasd ipsum voluptua. Stet diam et consetetur voluptua. Takimata et amet ipsum."
         }
       ]
+    }
+  ],
+  "tags": [
+    {
+      "id": "1",
+      "name": "old"
     }
   ]
 }

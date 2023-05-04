@@ -7,57 +7,50 @@ import TagListComponent from '../components/tagList.js';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import NoteDialog from './noteDialog.js';
-
-var data = [{ title: 'Note 1', content: 'Content 1', id: uuidv4()},
-            { title: 'Note 2', content: 'Content 2', id: uuidv4()},
-            { title: 'Note 3', content: 'Content 3', id: uuidv4()}];
-
+import TagDialog from './tagDialog.js';
 
 
 export default function Notes() {
-  var [noteList, setNoteList] = useState([]);
-  var [tagList, setTagList] = useState([]);
-
   useEffect(() => {
-    fetch('http://localhost:8000/users/1?notes')
+    fetch('http://localhost:8000/users/1')
       .then(response => {
         return response.json();
       })
       .then(data => {
-        setNoteList(data);
+        setNoteList(data.notes);
+      });
+
+    fetch('http://localhost:8000/tags')
+      .then(response => {
+        return response.json();
+      })
+      .then(data => {
+        setTagList(data);
         console.log(data);
       });
   }, [])
 
-  function handleNewNote() {
-    noteOpen();
-  }
+  // NoteListComponent methods
+  var [noteList, setNoteList] = useState([]);
 
   function handleNoteClick(id) {
     noteOpen();
-    console.log(id);
-    // Show note data according to id
+    const note = noteList.find(note => note.id === id);
+    setTitle(note.title);
+    setContent(note.content);
+    setId(id);
   }
 
-  // function handleNewTag() {
-  //   // Open tag edit popup
-  //   tagList.push({ name: 'The Tag', id: uuidv4() });
-  //   console.log(tagList);
-  //   setTagList(remakeArray(tagList));
-  // }
-
-  function handleTag(name) {
-    // Filer list by tag name
+  function handleNoteDelete(id) {
+    const newList = noteList.filter(note => note.id !== id);
+    setNoteList(newList);
   }
 
-  function handleEditTags() {
-    // Disable tag buttons and allow the name to be edited and tag to be removed
-  }
-
-  // Note Dialog
+  // NoteDialogComponent methods
   const [openNote, setNoteOpen] = useState(false);
   const [titleValue, setTitle] = useState('');
   const [contentValue, setContent] = useState('');
+  const [idValue, setId] = useState(null);
 
   const noteOpen = () => {
     setNoteOpen(true);
@@ -73,13 +66,32 @@ export default function Notes() {
     if (titleValue === '') {
       return false;
     }
-    noteList.push({ title: titleValue, content: contentValue, id: uuidv4() });
-    console.log(noteList);
-    setNoteList(remakeArray(noteList));
+    if (idValue !== null) {
+      noteList.find(note => note.id === idValue).title = titleValue;
+      noteList.find(note => note.id === idValue).content = contentValue;
+    } else {
+      noteList.push({ title: titleValue, content: contentValue, id: uuidv4() });
+    }
+    setNoteList(noteList.filter(note => note !== null));
     // Add to db
     setNoteOpen(false);
     setTitle('');
     setContent('');
+    setId(null);
+  }
+
+  // TagListComponent methods
+  const [tagOpen, setTagOpen] = useState(false);
+  var [tagList, setTagList] = useState([]);
+  const [tagName, setTagName] = useState('');
+
+  function handleTag(name) {
+    // Filer list by tag name
+  }
+
+  function handleEditTags() {
+    setTagOpen(true);
+    
   }
 
   return (
@@ -94,10 +106,10 @@ export default function Notes() {
         </Typography>
         <Stack direction="row" spacing={2} sx={{ minHeight: '58.2vh'}}>
           <Box sx={{ width: '20%' }}>
-          <TagListComponent addNote={handleNewNote} editTags={handleEditTags} tags={tagList} handleTag={handleTag} />
+          <TagListComponent tags={tagList} editTags={handleEditTags} handleTag={handleTag} />
           </Box>
           <Box sx={{ width: '80%' }}>
-          <NoteListComponent notes={noteList} handleNoteClick={handleNoteClick} />
+          <NoteListComponent notes={noteList} handleNoteClick={handleNoteClick} handleNoteDelete={handleNoteDelete} />
           </Box>
         </Stack>
       <NoteDialog 
@@ -109,12 +121,13 @@ export default function Notes() {
         contentValue={contentValue}
         setContent={setContent}
       />
+      <TagDialog 
+        tagOpen={tagOpen}
+        setTagOpen={setTagOpen}
+        tagList={tagList}
+        tagName={tagName}
+        setTagName={setTagName}
+      />
       </Container>
   )
-}
-
-function remakeArray(array, from, to) {
-  const arr = [...array];
-  [arr[from], arr[to]] = [arr[to], arr[from]];
-  return arr;
 }
