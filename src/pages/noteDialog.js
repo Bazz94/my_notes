@@ -3,21 +3,21 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { useState } from 'react';
+import { useState, useEffect} from 'react';
 import Stack from '@mui/material/Stack';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function NoteDialog({ 
-  openNote, setNoteOpen, titleValue, setTitle, contentValue, setContent, idValue, setId,
-  noteTags, setNoteTags, tagList, noteList, setNoteList}) {
+  openNote, setNoteOpen, tagList, noteList, setNoteList, titleValue,
+  setTitle, contentValue, setContent, idValue, setId, noteTags, setNoteTags, noteTagsRef }) {
 
   const [inputError, setInputError] = useState(false);
 
   function noteCancel() {
-    setNoteOpen(false);
     setTitle('');
     setContent('');
-    setNoteTags([]);
+    setId(null);
+    setNoteOpen(false);
   }; 
 
   function handleNoteOkLocal() {
@@ -33,26 +33,21 @@ export default function NoteDialog({
     }
     setNoteList(noteList.filter(note => note !== null));
     // Add to db
-    setNoteOpen(false);
+    setInputError(false);
     setTitle('');
     setContent('');
     setId(null);
-    setInputError(false);
+    setNoteOpen(false);
   }
 
   function handleClickTag(name) {
-    console.log('handleClickTag', ' ', noteTags);
     if (noteTags.includes(name)) {
-      var newList = noteTags.filter(item => item !== name);
-      setNoteTags(newList);
-      console.log('true');
+      setNoteTags(noteTags.filter(item => item !== name));
     } else {
       noteTags.push(name);
       setNoteTags(noteTags.filter(item => item !== null));
-      console.log('false');
     }
-    console.log('noteTags', ' ', noteTags);
-    noteList.find(note => note.id === idValue).tags = noteTags;
+    noteList.find(note => note.id === idValue).tags = noteTagsRef.current;
     setNoteList(noteList.filter(note => note !== null));
   }
 

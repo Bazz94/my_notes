@@ -6,17 +6,7 @@ import { CardActionArea } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-export default function noteList({ noteList, setNoteList, setNoteOpen, setTitle, setContent,
-  setId, setNoteTags }) {
-
-  function handleNoteClick(id) {
-    setNoteOpen(true);
-    const note = noteList.find(note => note.id === id);
-    setTitle(note.title);
-    setContent(note.content);
-    setId(id);
-    setNoteTags(note.tags)
-  }
+export default function NoteList({ noteList, setNoteList, handleNoteClick }) {
 
   function handleNoteDelete(id) {
     const newList = noteList.filter(note => note.id !== id);

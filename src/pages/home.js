@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Typography, Container } from "@mui/material";
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import useState from 'react-usestateref';
 import NoteListComponent from '../components/noteList.js';
 import TagListComponent from '../components/tagList.js';
 import Box from '@mui/material/Box';
@@ -32,13 +33,26 @@ export default function Notes() {
   // NoteListComponent methods
   const [noteList, setNoteList] = useState([]);
   const [filterNoteList, setFilterNoteList] = useState([]);
-
-  // NoteDialogComponent methods
-  const [openNote, setNoteOpen] = useState(false);
   const [titleValue, setTitle] = useState('');
   const [contentValue, setContent] = useState('');
   const [idValue, setId] = useState(null);
-  const [noteTags, setNoteTags] = useState([]);
+  const [noteTags, setNoteTags, noteTagsRef] = useState([]);
+
+  
+  function handleNoteClick(id) {
+    const note = noteList.find(note => note.id === id);
+    setId(id);
+    setTitle(note.title);
+    setContent(note.content);
+    setNoteTags(note.tags);
+    setNoteOpen(true);
+    console.log(note.tags);
+  }
+
+
+  // NoteDialogComponent methods
+  const [openNote, setNoteOpen] = useState(false);
+  
   
 
   // TagListComponentComponent methods
@@ -82,27 +96,26 @@ export default function Notes() {
           <NoteListComponent 
             noteList={filterNoteList} 
             setNoteList={setNoteList} 
-            setNoteOpen={setNoteOpen} 
-            setTitle={setTitle} 
-            setContent={setContent} 
-            setId={setId} 
-            setNoteTags={setNoteTags}/>
+            setNoteOpen={setNoteOpen}  
+            handleNoteClick={handleNoteClick}
+            />
           </Box>
         </Stack>
       <NoteDialog 
         openNote={openNote} 
         setNoteOpen={setNoteOpen}
-        titleValue={titleValue}
-        setTitle={setTitle}
-        contentValue={contentValue}
-        setContent={setContent}
-        idValue={idValue}
-        setId={setId}
-        noteTags={noteTags}
-        setNoteTags={setNoteTags}
         tagList={tagList}
         noteList={noteList}
         setNoteList={setNoteList}
+        titleValue={titleValue}
+        setTitle={ setTitle}
+        contentValue={ contentValue}
+        setContent={setContent }
+        idValue={ idValue}
+        setId={ setId}
+        noteTags={noteTags }
+        setNoteTags={setNoteTags}
+        noteTagsRef={noteTagsRef}
       />
       <TagDialog 
         tagOpen={tagOpen}

@@ -10,7 +10,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
 import { v4 as uuidv4 } from 'uuid';
-import { useState, useEffect } from 'react';
 
 export default function TagDialog(
   { tagOpen, setTagOpen, tagList, setTagList, tagName, setTagName }) {
@@ -66,7 +65,7 @@ export default function TagDialog(
               />
             </Stack>
             {tagList.map((tag) => (
-              <Stack direction="row">
+              <Stack direction="row" key={tag.id}>
                 <IconButton aria-label="delete" onClick={(e) => handleTagEdit(tag.id)}>
                   {tag.editing ? <DoneIcon /> : <EditIcon />}
                 </IconButton>
