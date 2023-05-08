@@ -16,15 +16,48 @@ export default function tagList({
   }
 
   function handleTag(tag) {
+    // Set tag 
     tagList.find(item => item === tag).selected = !(tag.selected);
     setTagList(tagList.filter(item => item !== null));
-    if (tag.selected) {
-      setFilterNoteList(filterNoteList.filter(note => note.tags.find(item => item === tag.name)));
-    } else {
-      const excludedList = noteList.filter(note => !(note.tags.find(item => item === tag.name)));
-      const newList = filterNoteList.concat(excludedList);
-      setFilterNoteList(newList);
+    // Check if tags are selected
+    var selected = [];
+    
+    for (const tag in tagList) {
+      if (tag.selected) {
+        selected.push(tag);
+      }
     }
+    if (selected.length === 0) {
+      setFilterNoteList(tagList);
+      return false;
+    }
+    console.log('flag1');
+    for (const tag in selected) {
+      console.log('flag2');
+      for (const note in noteList) {
+        console.log('flag3');
+        if (note.tags.find(item => item === tag.name)) {
+          console.log('flag4');
+          if (!(filterNoteList.find(item => item === note))) {
+            filterNoteList.push(note);
+            console.log(note.name);
+          }
+        }
+      }
+    }
+    setTagList(tagList.filter(item => item !== null));
+
+    // if (tag.selected) {
+    //   const filteredList = filterNoteList.filter(note => note.tags.find(item => item === tag.name));
+    //   console.log('Final List: ', filteredList);
+    //   setFilterNoteList(filteredList);
+    // } else {
+    //   const excludedList = noteList.filter(note => !(note.tags.find(item => item === tag.name)));
+    //   console.log('excluded: ', excludedList);
+    //   const newList = filterNoteList.concat(excludedList);
+    //   console.log('Final List (unselect): ',newList);
+    //   setFilterNoteList(newList);
+    // }
   }
 
   return (
