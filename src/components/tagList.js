@@ -4,7 +4,7 @@ import Paper from '@mui/material/Paper';
 import Card from '@mui/material/Card';
 
 export default function tagList({ 
-  tagList, setTagList, noteList, setNoteList, setNoteOpen, setTagOpen,
+  tagList, filterNoteListRef, setTagList, noteList, setNoteList, setNoteOpen, setTagOpen,
    filterNoteList, setFilterNoteList}) {
 
   function handleAddNote() {
@@ -19,45 +19,41 @@ export default function tagList({
     // Set tag 
     tagList.find(item => item === tag).selected = !(tag.selected);
     setTagList(tagList.filter(item => item !== null));
+    // Unselect all other tags
+    tagList.forEach((item) => {
+      if (item !== tag) {
+        item.selected = false;
+        setTagList(tagList.filter(item => item !== null));
+      }
+    })
     // Check if tags are selected
     var selected = [];
-    
-    for (const tag in tagList) {
+    tagList.forEach((tag) => {
       if (tag.selected) {
         selected.push(tag);
       }
-    }
+    });
     if (selected.length === 0) {
-      setFilterNoteList(tagList);
+      setFilterNoteList(noteList);
       return false;
     }
-    console.log('flag1');
-    for (const tag in selected) {
-      console.log('flag2');
-      for (const note in noteList) {
-        console.log('flag3');
-        if (note.tags.find(item => item === tag.name)) {
-          console.log('flag4');
-          if (!(filterNoteList.find(item => item === note))) {
-            filterNoteList.push(note);
-            console.log(note.name);
+    setFilterNoteList([]);
+    console.log('flag1 ', filterNoteListRef.current);
+    selected.forEach((tag) => {
+      noteList.forEach((note) => {
+        console.log('note has tag ', tag.name, ' ', note.tags.find(item => item === tag.name) != null);
+        if (note.tags.find(item => item === tag.name) != null) {
+          console.log('not already added ', filterNoteListRef.current.find(item => item === note) != null);
+          if (filterNoteListRef.current.find(item => item === note) == null) {
+            console.log('flag2 ', filterNoteListRef.current);
+            console.log('flag2.1', filterNoteList);
+            filterNoteListRef.current.push(note);
+            setFilterNoteList(filterNoteListRef.current.filter(item => item !== null));
+            console.log('flag3 ', filterNoteListRef.current);
           }
         }
-      }
-    }
-    setTagList(tagList.filter(item => item !== null));
-
-    // if (tag.selected) {
-    //   const filteredList = filterNoteList.filter(note => note.tags.find(item => item === tag.name));
-    //   console.log('Final List: ', filteredList);
-    //   setFilterNoteList(filteredList);
-    // } else {
-    //   const excludedList = noteList.filter(note => !(note.tags.find(item => item === tag.name)));
-    //   console.log('excluded: ', excludedList);
-    //   const newList = filterNoteList.concat(excludedList);
-    //   console.log('Final List (unselect): ',newList);
-    //   setFilterNoteList(newList);
-    // }
+      });
+    });
   }
 
   return (

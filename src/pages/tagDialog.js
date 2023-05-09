@@ -93,8 +93,7 @@ export default function TagDialog(
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleClose}>Ok</Button>
+          <Button onClick={handleClose}>Done</Button>
         </DialogActions>
       </Dialog>
     </div>

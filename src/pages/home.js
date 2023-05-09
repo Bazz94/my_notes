@@ -28,17 +28,16 @@ export default function Notes() {
       .then(data => {
         setTagList(data);
       });
-  }, [])
+  }, []);
 
   // NoteListComponent methods
   const [noteList, setNoteList] = useState([]);
-  const [filterNoteList, setFilterNoteList] = useState([]);
+  const [filterNoteList, setFilterNoteList, filterNoteListRef] = useState([]);
   const [titleValue, setTitle] = useState('');
   const [contentValue, setContent] = useState('');
   const [idValue, setId] = useState(null);
   const [noteTags, setNoteTags, noteTagsRef] = useState([]);
 
-  
   function handleNoteClick(id) {
     const note = noteList.find(note => note.id === id);
     setId(id);
@@ -46,21 +45,25 @@ export default function Notes() {
     setContent(note.content);
     setNoteTags(note.tags);
     setNoteOpen(true);
-    console.log(note.tags);
   }
-
 
   // NoteDialogComponent methods
   const [openNote, setNoteOpen] = useState(false);
   
-  
-
   // TagListComponentComponent methods
   const [tagList, setTagList] = useState([]);
-
+  
   // TagDialogComponent methods
   const [tagOpen, setTagOpen] = useState(false);
   const [tagName, setTagName] = useState('');
+
+  useEffect(() => {
+    console.log('noteList changed');
+  }, [noteList]);
+
+  useEffect(() => {
+    console.log('noteTags changed ', noteTags);
+  }, [noteTags]);
 
   return (
       <Container maxWidth="false"  
@@ -82,6 +85,7 @@ export default function Notes() {
             sx={{ width: '20%' }}>
           <TagListComponent 
             tagList={tagList} 
+            filterNoteListRef={filterNoteListRef}
             setTagList={setTagList}
             noteList={noteList}
             setNoteList={setNoteList}

@@ -22,7 +22,7 @@ export default function NoteList({ noteList, setNoteList, handleNoteClick }) {
               <ListItem>
                 <ListItemText
                   primary={note.title}
-                  secondary={note.content.substring(0, 80)}
+                  secondary={note.content && note.content.substring(0, 80)}
                 />
               </ListItem>
             </CardActionArea>

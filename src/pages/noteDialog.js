@@ -38,6 +38,9 @@ export default function NoteDialog({
     setContent('');
     setId(null);
     setNoteOpen(false);
+    // Update tags
+    noteList.find(note => note.id === idValue).tags = noteTagsRef.current;
+    setNoteList(noteList.filter(note => note !== null));
   }
 
   function handleClickTag(name) {
@@ -47,8 +50,6 @@ export default function NoteDialog({
       noteTags.push(name);
       setNoteTags(noteTags.filter(item => item !== null));
     }
-    noteList.find(note => note.id === idValue).tags = noteTagsRef.current;
-    setNoteList(noteList.filter(note => note !== null));
   }
 
   return (
@@ -85,7 +86,7 @@ export default function NoteDialog({
         <Stack direction='row' sx={{padding: '0px 1.5rem'}}>
           {tagList.map((tag) => (
             <Button key={tag.id}
-            variant={noteTags.includes(tag.name) 
+            variant={noteTagsRef.current.includes(tag.name) 
               ? "contained" : "outlined"} 
               onClick={() => {
                 handleClickTag(tag.name);
