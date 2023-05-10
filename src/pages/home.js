@@ -66,7 +66,7 @@ export default function Notes() {
   }, [noteTags]);
 
   return (
-      <Container maxWidth="false"  
+      <Container maxWidth="false"
         sx={{ 
           width: 'clamp(350px,80%,60rem)', 
           minHeight: '100vh', // weird

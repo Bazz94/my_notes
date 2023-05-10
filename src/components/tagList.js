@@ -2,6 +2,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import Card from '@mui/material/Card';
+import ButtonGroup from '@mui/material/ButtonGroup';
 
 export default function tagList({ 
   tagList, filterNoteListRef, setTagList, noteList, setNoteList, setNoteOpen, setTagOpen,
@@ -60,16 +61,21 @@ export default function tagList({
     <Card sx={{ padding: '0.4rem', height: 'calc(100% - 0.8rem)'}}>
       <Paper elevation={1} />
       <Stack spacing={0.5}>
+        <ButtonGroup orientation="vertical"
+          aria-label="vertical contained button group">
         <Button variant="contained"
           onClick={handleAddNote}>
           New Note
         </Button>
         <Button variant="contained"
+          color='secondary'
           onClick={handleEditTags}>
           Edit Tags
         </Button>
+        </ButtonGroup>
         {tagList.map((tag) => (
           <Button key={tag.id}
+            color='info'
             variant={tag.selected
               ? "contained" : "outlined"} 
             onClick={() => {

@@ -86,6 +86,7 @@ export default function NoteDialog({
         <Stack direction='row' sx={{padding: '0px 1.5rem'}}>
           {tagList.map((tag) => (
             <Button key={tag.id}
+              color='info'
             variant={noteTagsRef.current.includes(tag.name) 
               ? "contained" : "outlined"} 
               onClick={() => {
