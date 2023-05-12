@@ -1,7 +1,9 @@
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/home.js';
+import Login from './pages/login.js';
+import SignUp from './pages/signup.js';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { cyan, yellow, green } from '@mui/material/colors';
+import { cyan, yellow } from '@mui/material/colors';
 import CssBaseline from '@mui/material/CssBaseline';
 
 
@@ -20,7 +22,10 @@ function App() {
       <CssBaseline />
       <Router>
         <Routes>
-          <Route path="/" element={<Home />}></Route>
+          <Route path="/home" element={<Home />}></Route>
+          <Route path="/login" element={<Login />}></Route>
+          <Route path="/signup" element={<SignUp />}></Route>
+          <Route path="/*" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </ThemeProvider>

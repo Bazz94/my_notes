@@ -10,7 +10,7 @@ import NoteDialog from './noteDialog.js';
 import TagDialog from './tagDialog.js';
 
 
-export default function Notes() {
+export default function Home() {
   useEffect(() => {
     fetch('http://localhost:8000/users/1')
       .then(response => {
