@@ -5,6 +5,11 @@ import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,8 +24,43 @@ export default function Login() {
       });
   }, []);
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordCheck, setPasswordCheck] = useState('');
+  const [error, setError] = useState(null);
+
   function handleSignUp() {
+    // Check that password match
+    if (password !== passwordCheck) {
+      setError('Passwords do not match');
+      setOpenErrorDialog(true);
+      return false;
+    } 
+    if (email === '' ) {
+      setError('Please enter an email address');
+      return false;
+    }
+    if (password === '') {
+      setError('Please enter a password');
+      return false;
+    }
+    if (password.length < 7) {
+      setError('Passwords should be at least 8 characters');
+      return false;
+    }
+    // Create user
+    //TODO: 
+
+    // Login
+    localStorage.setItem("user-id", 'u' + uuidv4());
+    localStorage.setItem("authenticated", true);
     navigate("/home");
+  }
+
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
+
+  function handleErrorDialogOk() {
+    setOpenErrorDialog(false);
   }
 
   return (
@@ -45,6 +85,8 @@ export default function Login() {
           variant="outlined"
           type="email"
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           sx={{ margin: '0.5rem' }}
         />
         <TextField
@@ -53,6 +95,8 @@ export default function Login() {
           variant="outlined"
           type="password"
           required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           sx={{ margin: '0.5rem' }}
         />
         <TextField
@@ -61,23 +105,35 @@ export default function Login() {
           variant="outlined"
           type="password"
           required
+          value={passwordCheck}
+          onChange={(e) => setPasswordCheck(e.target.value)}
           sx={{ margin: '0.5rem' }}
         />
         <Button
           variant="contained"
           onClick={handleSignUp}
-          type='submit'
+          type='button'
           sx={{ margin: '0.5rem' }}
         >Submit
         </Button>
         <Button
           variant="outlined"
           href="/login"
-          type='submit'
+          type='button'
           sx={{ margin: '0.5rem' }}
         >Login
         </Button>
       </Stack>
+      <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
+        <DialogContent>
+          <Typography>
+            {error}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleErrorDialogOk}>Ok</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   )
 }

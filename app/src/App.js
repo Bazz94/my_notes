@@ -14,7 +14,7 @@ const theme = createTheme({
     secondary: cyan,
     info: cyan  
   }
-})
+});
 
 function App() {
   return (

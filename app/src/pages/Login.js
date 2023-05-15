@@ -12,8 +12,6 @@ import DialogContent from '@mui/material/DialogContent';
 export default function Login() {
   const navigate = useNavigate();
 
-  implemented 
-
   const [inputEmail, setInputEmail] = useState('');
   const [inputPassword, setInputPassword] = useState('');
   const [error, setError] = useState(null);

@@ -3,6 +3,8 @@ import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import Card from '@mui/material/Card';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import Chip from '@mui/material/Chip';
+import { Divider } from '@mui/material';
 
 export default function tagList({ 
   tagList, filterNoteListRef, setTagList, noteList, setNoteList, setNoteOpen, setTagOpen,
@@ -72,17 +74,18 @@ export default function tagList({
           onClick={handleEditTags}>
           Edit Tags
         </Button>
+        <Divider/>
         </ButtonGroup>
         {tagList.map((tag) => (
-          <Button key={tag.id}
+          <Chip key={tag.id}
             color='info'
             variant={tag.selected
-              ? "contained" : "outlined"} 
+              ? "filled" : "outlined"} 
             onClick={() => {
               handleTag(tag);
-            }}>
-            {tag.name}
-          </Button>
+            }}
+            label={tag.name}>
+          </Chip>
         ))}
       </Stack>
     </Card>

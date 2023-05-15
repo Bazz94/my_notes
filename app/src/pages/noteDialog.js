@@ -6,6 +6,8 @@ import DialogContent from '@mui/material/DialogContent';
 import { useState, useEffect} from 'react';
 import Stack from '@mui/material/Stack';
 import { v4 as uuidv4 } from 'uuid';
+import Chip from '@mui/material/Chip';
+
 
 export default function NoteDialog({ 
   openNote, setNoteOpen, tagList, noteList, setNoteList, titleValue,
@@ -53,7 +55,6 @@ export default function NoteDialog({
   }
 
   return (
-    <div>
       <Dialog open={openNote} onClose={noteCancel} maxWidth='md' fullWidth={true}>
         <DialogContent>
           <TextField
@@ -85,15 +86,15 @@ export default function NoteDialog({
         </DialogContent>
         <Stack direction='row' sx={{padding: '0px 1.5rem'}}>
           {tagList.map((tag) => (
-            <Button key={tag.id}
+            <Chip key={tag.id}
               color='info'
             variant={noteTagsRef.current.includes(tag.name) 
-              ? "contained" : "outlined"} 
+              ? "filled" : "outlined"} 
               onClick={() => {
                 handleClickTag(tag.name);
-              }}>
-              {tag.name}
-            </Button>
+              }}
+              label={tag.name}>
+            </Chip>
           ))}
         </Stack>
         <DialogActions>
@@ -101,6 +102,5 @@ export default function NoteDialog({
           <Button onClick={handleNoteOkLocal}>Ok</Button>
         </DialogActions>
       </Dialog>
-    </div>
   );
 }

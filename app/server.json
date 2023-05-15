@@ -2,8 +2,8 @@
   "users": [
     {
       "id": "1",
-      "username": "cakemix",
       "email": "cake@email.com",
+      "password": "12341234",
       "notes": [
         {
           "id": "16c7f21e-ea8c-11ed-a05b-0242ac120003",

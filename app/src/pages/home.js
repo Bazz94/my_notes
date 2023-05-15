@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography, Container } from "@mui/material";
+import { Typography, Container, Divider } from "@mui/material";
 import { useEffect } from 'react';
 import useState from 'react-usestateref';
 import NoteListComponent from '../components/noteList.js';
@@ -8,9 +8,22 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import NoteDialog from './noteDialog.js';
 import TagDialog from './tagDialog.js';
+import { useNavigate } from "react-router-dom";
+import Fab from '@mui/material/Fab';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LoadingComponent from '../components/loading.js'
 
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  const userLoggedIn = localStorage.getItem("authenticated");
+  if (!userLoggedIn) {
+    navigate("/login");
+  }
+
+  const [receivedNotes, setReceivedNotes] = useState(false);
+  const [receivedTags, setReceivedTags] = useState(false);
   useEffect(() => {
     fetch('http://localhost:8000/users/1')
       .then(response => {
@@ -19,6 +32,7 @@ export default function Home() {
       .then(data => {
         setNoteList(data.notes);
         setFilterNoteList(data.notes);
+        setReceivedNotes(true);
       });
 
     fetch('http://localhost:8000/tags')
@@ -27,6 +41,7 @@ export default function Home() {
       })
       .then(data => {
         setTagList(data);
+        setReceivedTags(true);
       });
   }, []);
 
@@ -65,18 +80,49 @@ export default function Home() {
     console.log('noteTags changed ', noteTags);
   }, [noteTags]);
 
-  return (
+  const [showLogOut, setShowLogOut, showLogOutRef] = useState(false);
+
+  const handleLogOut = () => {
+    localStorage.setItem("authenticated", false);
+    localStorage.setItem("user-id", null);
+    navigate('/login');
+  }
+
+  return !(receivedNotes && receivedTags) ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
           width: 'clamp(350px,80%,60rem)', 
           minHeight: '100vh', // weird
           padding: '1rem',
         }}>
-        <Typography 
-          variant="h1" 
-          sx={{margin: '1rem', textAlign: 'center'}} >
-          My Notes
-        </Typography>
+        <Box>
+          <Box sx={{
+            position: 'relative',
+            top: '4.9rem',
+            left: '0rem',
+          }}>
+            <Fab size="small" 
+              aria-label="edit" 
+              sx={{marginRight: '10px'}}
+              onClick={() => setShowLogOut(!showLogOutRef.current)}
+              >
+              <SettingsIcon />
+            </Fab>
+            <Fab 
+              variant="extended" 
+              size="small" 
+              aria-label="edit"
+              onClick={handleLogOut}
+              sx={{ display: showLogOut ? '' : 'none' }}>
+              Log out
+            </Fab>
+          </Box>
+          <Typography 
+            variant="h1" 
+            sx={{margin: '1rem', textAlign: 'center'}}>
+            My Notes
+          </Typography>
+        </Box>
         <Stack 
           direction="row" 
           spacing={2} 
