@@ -5,33 +5,53 @@ import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import { useNavigate } from "react-router-dom";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 
 export default function Login() {
   const navigate = useNavigate();
 
+  implemented 
+
   const [inputEmail, setInputEmail] = useState('');
   const [inputPassword, setInputPassword] = useState('');
-
-
-  useEffect(() => {
-    fetch('http://localhost:8000/users/1')
-      .then(response => {
-        return response.json();
-      })
-      .then(data => {
-        
-      });
-  }, []);
+  const [error, setError] = useState(null);
 
   function handleLogin() {
+    if (inputPassword === '') {
+      setError('Please enter a password');
+      return false;
+    }
+    if (inputEmail === '') {
+      setError('Please enter an email');
+      return false;
+    }
     // make a request with email
+    // TODO:
 
+    const user_id = '';
+    const retrievedPassword = '';
     // check that the password matches the email
+    if (retrievedPassword !== inputPassword) {
+      setError('Credentials are incorrect (password)');
+      setOpenErrorDialog(true);
+      return false;
+    } 
 
     // go to home
+    localStorage.setItem("user-id", user_id);
+    localStorage.setItem("authenticated", true);
     navigate("/home");
 
     //else show error dialog
+  }
+
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
+  
+
+  function handleErrorDialogOk() {
+    setOpenErrorDialog(false);
   }
 
   return (
@@ -82,6 +102,16 @@ export default function Login() {
             sx={{ margin: '0.5rem' }}
           >Sign Up</Button>
         </Stack>
+      <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
+        <DialogContent>
+          <Typography>
+            {error}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleErrorDialogOk}>Ok</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   )
 }
