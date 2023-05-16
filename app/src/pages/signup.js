@@ -14,16 +14,6 @@ import { v4 as uuidv4 } from 'uuid';
 export default function Login() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch('http://localhost:8000/users/1')
-      .then(response => {
-        return response.json();
-      })
-      .then(data => {
-        
-      });
-  }, []);
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
@@ -52,8 +42,8 @@ export default function Login() {
     //TODO: 
 
     // Login
-    localStorage.setItem("user-id", 'u' + uuidv4());
-    localStorage.setItem("authenticated", true);
+    localStorage.setItem("user_id", 'u' + uuidv4());
+    localStorage.setItem("loggedIn", true);
     navigate("/home");
   }
 

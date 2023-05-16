@@ -17,31 +17,24 @@ import LoadingComponent from '../components/loading.js'
 export default function Home() {
   const navigate = useNavigate();
 
-  const userLoggedIn = localStorage.getItem("authenticated");
+  const userLoggedIn = localStorage.getItem("loggedIn");
   if (!userLoggedIn) {
     navigate("/login");
   }
+  const user_id = localStorage.getItem('user_id');
 
-  const [receivedNotes, setReceivedNotes] = useState(false);
-  const [receivedTags, setReceivedTags] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
-    fetch('http://localhost:8000/users/1')
+    fetch(`http://localhost:8000/users/${user_id}`)
       .then(response => {
         return response.json();
       })
       .then(data => {
         setNoteList(data.notes);
         setFilterNoteList(data.notes);
-        setReceivedNotes(true);
-      });
-
-    fetch('http://localhost:8000/tags')
-      .then(response => {
-        return response.json();
-      })
-      .then(data => {
-        setTagList(data);
-        setReceivedTags(true);
+        setNoteList(data.tags);
+        setIsLoading(true);
       });
   }, []);
 
@@ -88,7 +81,7 @@ export default function Home() {
     navigate('/login');
   }
 
-  return !(receivedNotes && receivedTags) ? (<LoadingComponent/>) : (
+  return !isLoading ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
           width: 'clamp(350px,80%,60rem)', 

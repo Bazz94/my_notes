@@ -1,8 +1,7 @@
 {
   "users": [
     {
-      "id": "1",
-      "email": "cake@email.com",
+      "id": "cake@email.com",
       "password": "12341234",
       "notes": [
         {
@@ -23,15 +22,15 @@
           "content": "Eos sit sit lorem sanctus et dolores vero kasd ipsum voluptua. Stet diam et consetetur voluptua. Takimata et amet ipsum.",
           "tags": []
         }
+      ],
+      "tags": [
+        {
+          "id": "1",
+          "name": "old",
+          "editing": false,
+          "selected": false
+        }
       ]
-    }
-  ],
-  "tags": [
-    {
-      "id": "1",
-      "name": "old",
-      "editing": false,
-      "selected": false
     }
   ]
 }
