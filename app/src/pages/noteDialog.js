@@ -22,6 +22,7 @@ export default function NoteDialog({
     setContent('');
     setId(null);
     setNoteOpen(false);
+    setNoteTags([]);
   }; 
 
   function handleNoteOkLocal() {
@@ -88,12 +89,12 @@ export default function NoteDialog({
       setNoteTags(noteTags.filter(item => item !== name));
     } else {
       noteTags.push(name);
-      setNoteTags([...noteTags]);
+      setNoteTags([...noteTagsRef.current]);
     }
   }
 
   return (
-      <Dialog open={openNote} onClose={noteCancel} maxWidth='md' fullWidth={true}>
+      <Dialog open={openNote} maxWidth='md' fullWidth={true}>
         <DialogContent>
           <TextField
             autoFocus
@@ -126,7 +127,7 @@ export default function NoteDialog({
           {tagList.map((tag) => (
             <Chip key={tag.id}
               color='info'
-            variant={noteTagsRef.current.includes(tag.name) 
+            variant={noteTags.includes(tag.name) 
               ? "filled" : "outlined"} 
               onClick={() => {
                 handleClickTag(tag.name);

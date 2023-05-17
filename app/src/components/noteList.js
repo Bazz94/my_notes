@@ -7,13 +7,16 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { setFetch } from '../requestHandlers.js';
 
-export default function NoteList({ user_id, noteList, setNoteList, handleNoteClick,
-  setOpenErrorDialog, setError }) {
+export default function NoteList({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
+   handleNoteClick, setOpenErrorDialog, setError }) {
 
   function handleNoteDelete(id) {
     const tempNoteList = noteList;
+    const tempFilterNoteList = filterNoteList;
     const newList = noteList.filter(note => note.id !== id);
+    const newFilterList = filterNoteList.filter(note => note.id !== id);
     setNoteList(newList);
+    setFilterNoteList(newFilterList);
     // TODO: sends all notes to db rather than deleting a single item
     const data = { "notes": newList };
     setFetch(data, user_id)
@@ -24,6 +27,7 @@ export default function NoteList({ user_id, noteList, setNoteList, handleNoteCli
           setOpenErrorDialog(true);
           // Rollback changes
           setNoteList([...tempNoteList]);
+          setFilterNoteList([...tempFilterNoteList]);
           return false;
         }
         console.log('Update db after delete');
@@ -32,7 +36,7 @@ export default function NoteList({ user_id, noteList, setNoteList, handleNoteCli
 
   return (
     <Stack spacing={1}>
-      {noteList.map((note) => (
+      {filterNoteList.map((note) => (
         <Card sx={{ minWidth: 200 }} key={note.id}>
           <Stack direction="row">
             <CardActionArea onClick={(e) => handleNoteClick(note.id)}> 

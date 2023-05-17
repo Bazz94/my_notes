@@ -43,17 +43,12 @@ export default function Home() {
 
   const [fatalError, setFatalError] = useState(false);
 
-  // useEffect(() => {
-  //   console.log(noteList);
-  // }, [noteList]);
-
   function handleNoteClick(id) {
     const note = noteList.find(note => note.id === id);
     setId(id);
-    console.log(noteList);
     setTitle(note.title);
     setContent(note.content);
-    setNoteTags(note.tags);
+    setNoteTags([...note.tags]);
     setNoteOpen(true);
   }
 
@@ -91,7 +86,6 @@ export default function Home() {
   useEffect(() => {
     getFetch(user_id)
       .then((response) => {
-        console.log('fetched data home');
         if (response.error !== false) {
           setFatalError(true);
           setError(response.error);
@@ -103,9 +97,10 @@ export default function Home() {
         setFilterNoteList(response.data.notes);
         setTagList(response.data.tags);
         setIsLoading(false);
+        console.log('Fetched user data for home page');
       });
   }, [setFilterNoteList, setNoteList, setTagList, user_id]);
-  
+
   return isLoading ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
@@ -162,8 +157,10 @@ export default function Home() {
             sx={{ width: '80%' }}>
           <NoteListComponent 
             user_id={user_id}
-            noteList={filterNoteList}  
+            noteList={noteList}
             setNoteList={setNoteList}
+            filterNoteList={filterNoteList}
+            setFilterNoteList={setFilterNoteList}  
             handleNoteClick={handleNoteClick}
             setOpenErrorDialog={setOpenErrorDialog}
             setError={setError}
@@ -194,7 +191,7 @@ export default function Home() {
       <TagDialog 
         user_id={user_id}
         tagOpen={tagOpen}
-        setTagOpen={setTagOpen}
+        setTagOpen={setTagOpen}s
         tagList={tagList}
         tagListRef={tagListRef}
         setTagList={setTagList}
