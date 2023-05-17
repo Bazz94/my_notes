@@ -5,12 +5,29 @@ import Card from '@mui/material/Card';
 import { CardActionArea } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { setFetch } from '../requestHandlers.js';
 
-export default function NoteList({ noteList, setNoteList, handleNoteClick }) {
+export default function NoteList({ user_id, noteList, setNoteList, handleNoteClick,
+  setOpenErrorDialog, setError }) {
 
   function handleNoteDelete(id) {
+    const tempNoteList = noteList;
     const newList = noteList.filter(note => note.id !== id);
     setNoteList(newList);
+    // TODO: sends all notes to db rather than deleting a single item
+    const data = { "notes": newList };
+    setFetch(data, user_id)
+      .then((error) => {
+        if (error !== false) {
+          // Error message
+          setError(error);
+          setOpenErrorDialog(true);
+          // Rollback changes
+          setNoteList([...tempNoteList]);
+          return false;
+        }
+        console.log('Update db after delete');
+      });
   }
 
   return (

@@ -4,8 +4,6 @@ export default async function getFetch(item, collection) {
   var data;
   var error = false;
 
-  console.log(item, ' ', typeof collection === 'undefined');
-
   if (typeof collection === 'undefined') {
     if (typeof item === 'undefined') {
       error = 'No item or collection was specified';
@@ -65,7 +63,7 @@ export default async function getFetch(item, collection) {
 }
 
 
-export async function setFetch(data, user, collection) {
+export async function setFetch(data, user) {
   var error = false;
 
   if (typeof user === 'undefined') {
@@ -85,8 +83,8 @@ export async function setFetch(data, user, collection) {
       }, 1000);
     return error;
   } else {
-    await fetch(`http://localhost:8000/users/${user}/${collection}`, {
-      method: 'POST',
+    await fetch(`http://localhost:8000/users/${user}`, {
+      method: 'PATCH',
       headers: {
         "Content-type": "application/json"
       },

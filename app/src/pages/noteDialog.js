@@ -3,17 +3,17 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { useState, useEffect} from 'react';
+import { useState } from 'react';
 import Stack from '@mui/material/Stack';
 import { v4 as uuidv4 } from 'uuid';
 import Chip from '@mui/material/Chip';
 import { setFetch } from '../requestHandlers.js';
-import Alert from '@mui/material/Alert';
 
 
 export default function NoteDialog({ 
-  user_id, openNote, setNoteOpen, tagList, noteList, setNoteList, titleValue,
-  setTitle, contentValue, setContent, idValue, setId, noteTags, setNoteTags, noteTagsRef }) {
+  user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, titleValue,
+  setTitle, contentValue, setContent, idValue, idValueRef, setId, noteTags, setNoteTags, noteTagsRef,
+  setOpenErrorDialog, setError }) {
 
   const [inputError, setInputError] = useState(false);
 
@@ -27,47 +27,54 @@ export default function NoteDialog({
   function handleNoteOkLocal() {
     var noteId;
     var changesMadeToNotes = false;
+    
+    const tempNoteList = noteList;
+    const tempNoteTags = noteTags;
+
     if (titleValue === '') {
       setInputError(true);
       return false;
     }
     if (idValue !== null) {
-      if (noteList.find(note => note.id === idValue).title === titleValue
-        && noteList.find(note => note.id === idValue).content === contentValue) {
+      if (noteList.find(note => note.id === idValue).title !== titleValue
+        || noteList.find(note => note.id === idValue).content !== contentValue) {
           noteList.find(note => note.id === idValue).title = titleValue;
           noteList.find(note => note.id === idValue).content = contentValue;
-        changesMadeToNotes = true;
+          changesMadeToNotes = true;
       }
     } else {
       noteId = uuidv4();
-      noteList.push({ title: titleValue, content: contentValue, id: noteId });
+      setId(noteId);
+      noteList.push({ id: noteId, title: titleValue, content: contentValue, tags: [] });
       changesMadeToNotes = true;
     }
-    setNoteList(noteList.filter(note => note !== null));
-    // Add to db
-    
-    // Update tags
-    noteList.find(note => note.id === idValue).tags = noteTagsRef.current;
-    setNoteList(noteList.filter(note => note !== null));
 
-    const data = {
-      "id": idValue !== null ? idValue : noteId,
-      "title": titleValue,
-      "content": contentValue,
-      "tags": noteTagsRef.current
+    if (noteList.find(note => note.id === idValueRef.current).tags !== noteTagsRef.current) {
+      noteList.find(note => note.id === idValueRef.current).tags = noteTagsRef.current;
+      changesMadeToNotes = true;
     }
 
-    setFetch(data, user_id, 'notes')
+    // Updating notes
+    // TODO: currently sending the whole note list rather then only updating was has changed
+    if (changesMadeToNotes) {
+      setNoteList([...noteList]);
+      const data = { "notes": noteListRef.current };
+      setFetch(data, user_id)
       .then((error) => {
         if (error !== false) {
-          // setError(error);
-          // setOpenErrorDialog(true);
+          // Error message
+          setError(error);
+          setOpenErrorDialog(true);
+          // Rollback changes
+          setNoteList([...tempNoteList]);
+          setNoteTags([...tempNoteTags]);
           return false;
         }
-        // Login
-        
+        console.log('sent notes data');
       });
+    }
 
+    // Clean up 
     console.log('Note Submitted');
     setInputError(false);
     setTitle('');
@@ -81,7 +88,7 @@ export default function NoteDialog({
       setNoteTags(noteTags.filter(item => item !== name));
     } else {
       noteTags.push(name);
-      setNoteTags(noteTags.filter(item => item !== null));
+      setNoteTags([...noteTags]);
     }
   }
 

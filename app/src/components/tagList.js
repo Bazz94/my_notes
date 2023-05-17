@@ -7,7 +7,7 @@ import Chip from '@mui/material/Chip';
 import { Divider } from '@mui/material';
 
 export default function tagList({ 
-  tagList, filterNoteListRef, setTagList, noteList, setNoteList, setNoteOpen, setTagOpen,
+  tagList, filterNoteListRef, setTagList, noteList, setNoteOpen, setTagOpen,
    filterNoteList, setFilterNoteList}) {
 
   function handleAddNote() {
@@ -21,14 +21,15 @@ export default function tagList({
   function handleTag(tag) {
     // Set tag 
     tagList.find(item => item === tag).selected = !(tag.selected);
-    setTagList(tagList.filter(item => item !== null));
+    setTagList([...tagList]);
     // Unselect all other tags
     tagList.forEach((item) => {
       if (item !== tag) {
         item.selected = false;
-        setTagList(tagList.filter(item => item !== null));
+        setTagList([...tagList]);
       }
-    })
+    });
+
     // Check if tags are selected
     var selected = [];
     tagList.forEach((tag) => {
@@ -41,18 +42,12 @@ export default function tagList({
       return false;
     }
     setFilterNoteList([]);
-    console.log('flag1 ', filterNoteListRef.current);
     selected.forEach((tag) => {
       noteList.forEach((note) => {
-        console.log('note has tag ', tag.name, ' ', note.tags.find(item => item === tag.name) != null);
         if (note.tags.find(item => item === tag.name) != null) {
-          console.log('not already added ', filterNoteListRef.current.find(item => item === note) != null);
           if (filterNoteListRef.current.find(item => item === note) == null) {
-            console.log('flag2 ', filterNoteListRef.current);
-            console.log('flag2.1', filterNoteList);
             filterNoteListRef.current.push(note);
-            setFilterNoteList(filterNoteListRef.current.filter(item => item !== null));
-            console.log('flag3 ', filterNoteListRef.current);
+            setFilterNoteList([...filterNoteListRef.current]);
           }
         }
       });

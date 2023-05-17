@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography, Container, Divider } from "@mui/material";
+import { Typography, Container } from "@mui/material";
 import { useEffect } from 'react';
 import useState from 'react-usestateref';
 import NoteListComponent from '../components/noteList.js';
@@ -32,32 +32,20 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    getFetch(user_id)
-      .then((response) => {
-        console.log('fetched data home');
-        if (response.error !== false) {
-          setError(response.error);
-          setOpenErrorDialog(true);
-          setIsLoading(false);
-          return false;
-        }
-        setNoteList(response.data.notes);
-        setFilterNoteList(response.data.notes);
-        setTagList(response.data.tags);
-        setIsLoading(false);
-      });
-  }, [user_id]);
-
-  
 
   // NoteListComponent methods
-  const [noteList, setNoteList] = useState([]);
+  const [noteList, setNoteList, noteListRef] = useState([]);
   const [filterNoteList, setFilterNoteList, filterNoteListRef] = useState([]);
   const [titleValue, setTitle] = useState('');
   const [contentValue, setContent] = useState('');
-  const [idValue, setId] = useState(null);
+  const [idValue, setId, idValueRef] = useState(null);
   const [noteTags, setNoteTags, noteTagsRef] = useState([]);
+
+  const [fatalError, setFatalError] = useState(false);
+
+  // useEffect(() => {
+  //   console.log(noteList);
+  // }, [noteList]);
 
   function handleNoteClick(id) {
     const note = noteList.find(note => note.id === id);
@@ -73,7 +61,7 @@ export default function Home() {
   const [openNote, setNoteOpen] = useState(false);
   
   // TagListComponentComponent methods
-  const [tagList, setTagList] = useState([]);
+  const [tagList, setTagList, tagListRef] = useState([]);
   
   // TagDialogComponent methods
   const [tagOpen, setTagOpen] = useState(false);
@@ -92,11 +80,32 @@ export default function Home() {
 
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
-    localStorage.setItem("authenticated", false);
-    localStorage.setItem("user-id", null);
-    navigate("/login");
+    if (fatalError) {
+      localStorage.setItem("authenticated", false);
+      localStorage.setItem("user-id", null);
+      navigate("/login");
+    }
   }
 
+  // useEffect
+  useEffect(() => {
+    getFetch(user_id)
+      .then((response) => {
+        console.log('fetched data home');
+        if (response.error !== false) {
+          setFatalError(true);
+          setError(response.error);
+          setOpenErrorDialog(true);
+          setIsLoading(false);
+          return false;
+        }
+        setNoteList(response.data.notes);
+        setFilterNoteList(response.data.notes);
+        setTagList(response.data.tags);
+        setIsLoading(false);
+      });
+  }, [setFilterNoteList, setNoteList, setTagList, user_id]);
+  
   return isLoading ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
@@ -143,7 +152,6 @@ export default function Home() {
             filterNoteListRef={filterNoteListRef}
             setTagList={setTagList}
             noteList={noteList}
-            setNoteList={setNoteList}
             setNoteOpen={setNoteOpen} 
             setTagOpen={setTagOpen}
             filterNoteList={filterNoteList}
@@ -153,10 +161,12 @@ export default function Home() {
           <Box 
             sx={{ width: '80%' }}>
           <NoteListComponent 
-            noteList={filterNoteList} 
-            setNoteList={setNoteList} 
-            setNoteOpen={setNoteOpen}  
+            user_id={user_id}
+            noteList={filterNoteList}  
+            setNoteList={setNoteList}
             handleNoteClick={handleNoteClick}
+            setOpenErrorDialog={setOpenErrorDialog}
+            setError={setError}
             />
           </Box>
         </Stack>
@@ -166,25 +176,32 @@ export default function Home() {
         setNoteOpen={setNoteOpen}
         tagList={tagList}
         noteList={noteList}
+        noteListRef={noteListRef}
         setNoteList={setNoteList}
         titleValue={titleValue}
         setTitle={ setTitle}
         contentValue={ contentValue}
         setContent={setContent }
         idValue={ idValue}
+        idValueRef={idValueRef}
         setId={ setId}
         noteTags={noteTags }
         setNoteTags={setNoteTags}
         noteTagsRef={noteTagsRef}
+        setOpenErrorDialog={setOpenErrorDialog}
+        setError={setError}
       />
       <TagDialog 
         user_id={user_id}
         tagOpen={tagOpen}
         setTagOpen={setTagOpen}
         tagList={tagList}
+        tagListRef={tagListRef}
         setTagList={setTagList}
         tagName={tagName}
         setTagName={setTagName}
+        setOpenErrorDialog={setOpenErrorDialog}
+        setError={setError}
       />
       <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
         <DialogContent>

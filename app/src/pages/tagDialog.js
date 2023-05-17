@@ -10,19 +10,40 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
 import { v4 as uuidv4 } from 'uuid';
+import { setFetch } from '../requestHandlers.js';
 
 export default function TagDialog(
-  { tagOpen, setTagOpen, tagList, setTagList, tagName, setTagName }) {
+  { user_id, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName, setOpenErrorDialog, setError }) {
 
   function handleClose() {
     setTagOpen(false);
+    const data = { "tags": tagListRef.current };
+    setFetch(data, user_id)
+      .then((error) => {
+        if (error !== false) {
+          // Error message
+          setError(error);
+          setOpenErrorDialog(true);
+          // Rollback changes
+          return false;
+        }
+        console.log('added new tag to db');
+      });
+    setTagName('');
   }
 
   function handelNewTag() {
-    // Check to make sure it is
-    tagList.unshift({name: tagName, id: uuidv4()})
-    setTagList(tagList.filter(tag => tag !== null));
-    setTagName('');
+    if (tagName.length < 1) {
+      return false;
+    }
+    if (tagList.find(item => item.name === tagName) != null) {
+      setError('Tag already exists');
+      setOpenErrorDialog(true);
+      setTagName('');
+      return false;
+    }
+    tagList.unshift({ id: uuidv4(), name: tagName, editing: false, selected: false})
+    setTagList([...tagList]);
   }
 
   function handleTagEdit(id) {
@@ -34,11 +55,28 @@ export default function TagDialog(
     } else {
       tagList.find(tag => tag.id === id).editing = false;
     }
-    setTagList(tagList.filter(tag => tag !== null));
+    setTagList([...tagList]);
   }
 
   function handleTagDelete(id) {
-    setTagList(tagList.filter(tag => tag.id !== id));
+    //TODO: When a tag is deleted it must also be removed from every note 
+    const tempTagList = tagList;
+    const newList = tagList.filter(tag => tag.id !== id)
+    setTagList(newList);
+    const data = { "tags": newList };
+    setFetch(data, user_id)
+      .then((error) => {
+        if (error !== false) {
+          // Error message
+          setError(error);
+          setOpenErrorDialog(true);
+          // Rollback changes
+          setTagList([...tempTagList]);
+          return false;
+        }
+        console.log('deleted tag and updated db');
+      });
+    setTagName('');
   }
 
 
@@ -82,7 +120,7 @@ export default function TagDialog(
                   disabled={!(tag.editing)}
                   onChange={(e) => {
                     tagList.find(item => item.id === tag.id).name = e.target.value;
-                    setTagList(tagList.filter(tag => tag !== null));
+                    setTagList([...tagList]);
                   }}
                 />
                 {tag.editing ? <IconButton aria-label="delete" onClick={(e) => handleTagDelete(tag.id)}>
