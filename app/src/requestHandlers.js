@@ -1,4 +1,6 @@
-async function CustomFetch(item, collection) {
+
+
+export default async function getFetch(item, collection) {
   var data;
   var error = false;
 
@@ -62,4 +64,41 @@ async function CustomFetch(item, collection) {
   }
 }
 
-export default CustomFetch;
+
+export async function setFetch(data, user, collection) {
+  var error = false;
+
+  if (typeof user === 'undefined') {
+    await fetch(`http://localhost:8000/users/`, {
+      method: 'POST',
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(data)
+    }).then(response => {
+        if (!response.ok) {
+          throw Error('Could not set resource');
+        }
+      })
+      .catch(err => {
+        error = err.message;
+      }, 1000);
+    return error;
+  } else {
+    await fetch(`http://localhost:8000/users/${user}/${collection}`, {
+      method: 'POST',
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(data)
+    }).then(response => {
+      if (!response.ok) {
+        throw Error('Could not set resource');
+      }
+    })
+      .catch(err => {
+        error = err.message;
+      }, 1000);
+    return error;
+  }
+}

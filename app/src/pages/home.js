@@ -11,7 +11,12 @@ import TagDialog from './tagDialog.js';
 import { useNavigate } from "react-router-dom";
 import Fab from '@mui/material/Fab';
 import SettingsIcon from '@mui/icons-material/Settings';
-import LoadingComponent from '../components/loading.js'
+import LoadingComponent from '../components/loading.js';
+import getFetch from '../requestHandlers.js';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import Button from '@mui/material/Button';
 
 
 export default function Home() {
@@ -24,19 +29,27 @@ export default function Home() {
   const user_id = localStorage.getItem('user_id');
 
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    fetch(`http://localhost:8000/users/${user_id}`)
-      .then(response => {
-        return response.json();
-      })
-      .then(data => {
-        setNoteList(data.notes);
-        setFilterNoteList(data.notes);
-        setNoteList(data.tags);
-        setIsLoading(true);
+    getFetch(user_id)
+      .then((response) => {
+        console.log('fetched data home');
+        if (response.error !== false) {
+          setError(response.error);
+          setOpenErrorDialog(true);
+          setIsLoading(false);
+          return false;
+        }
+        setNoteList(response.data.notes);
+        setFilterNoteList(response.data.notes);
+        setTagList(response.data.tags);
+        setIsLoading(false);
       });
-  }, []);
+  }, [user_id]);
+
+  
 
   // NoteListComponent methods
   const [noteList, setNoteList] = useState([]);
@@ -49,6 +62,7 @@ export default function Home() {
   function handleNoteClick(id) {
     const note = noteList.find(note => note.id === id);
     setId(id);
+    console.log(noteList);
     setTitle(note.title);
     setContent(note.content);
     setNoteTags(note.tags);
@@ -65,14 +79,6 @@ export default function Home() {
   const [tagOpen, setTagOpen] = useState(false);
   const [tagName, setTagName] = useState('');
 
-  useEffect(() => {
-    console.log('noteList changed');
-  }, [noteList]);
-
-  useEffect(() => {
-    console.log('noteTags changed ', noteTags);
-  }, [noteTags]);
-
   const [showLogOut, setShowLogOut, showLogOutRef] = useState(false);
 
   const handleLogOut = () => {
@@ -81,7 +87,17 @@ export default function Home() {
     navigate('/login');
   }
 
-  return !isLoading ? (<LoadingComponent/>) : (
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
+
+
+  function handleErrorDialogOk() {
+    setOpenErrorDialog(false);
+    localStorage.setItem("authenticated", false);
+    localStorage.setItem("user-id", null);
+    navigate("/login");
+  }
+
+  return isLoading ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
           width: 'clamp(350px,80%,60rem)', 
@@ -145,6 +161,7 @@ export default function Home() {
           </Box>
         </Stack>
       <NoteDialog 
+        user_id={user_id}
         openNote={openNote} 
         setNoteOpen={setNoteOpen}
         tagList={tagList}
@@ -161,6 +178,7 @@ export default function Home() {
         noteTagsRef={noteTagsRef}
       />
       <TagDialog 
+        user_id={user_id}
         tagOpen={tagOpen}
         setTagOpen={setTagOpen}
         tagList={tagList}
@@ -168,6 +186,16 @@ export default function Home() {
         tagName={tagName}
         setTagName={setTagName}
       />
+      <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
+        <DialogContent>
+          <Typography>
+            {error}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleErrorDialogOk}>Ok</Button>
+        </DialogActions>
+      </Dialog>
       </Container>
   )
 }

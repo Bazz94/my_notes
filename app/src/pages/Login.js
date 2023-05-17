@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import customFetch from '../customFetch';
+import getFetch from '../requestHandlers';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export default function Login() {
       return false;
     }
     // make a request with email
-    const response = await customFetch(inputEmail);
+    const response = await getFetch(inputEmail);
 
     // TODO: Differentiate between error and incorrect email
 

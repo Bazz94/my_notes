@@ -7,10 +7,12 @@ import { useState, useEffect} from 'react';
 import Stack from '@mui/material/Stack';
 import { v4 as uuidv4 } from 'uuid';
 import Chip from '@mui/material/Chip';
+import { setFetch } from '../requestHandlers.js';
+import Alert from '@mui/material/Alert';
 
 
 export default function NoteDialog({ 
-  openNote, setNoteOpen, tagList, noteList, setNoteList, titleValue,
+  user_id, openNote, setNoteOpen, tagList, noteList, setNoteList, titleValue,
   setTitle, contentValue, setContent, idValue, setId, noteTags, setNoteTags, noteTagsRef }) {
 
   const [inputError, setInputError] = useState(false);
@@ -23,26 +25,55 @@ export default function NoteDialog({
   }; 
 
   function handleNoteOkLocal() {
+    var noteId;
+    var changesMadeToNotes = false;
     if (titleValue === '') {
       setInputError(true);
       return false;
     }
     if (idValue !== null) {
-      noteList.find(note => note.id === idValue).title = titleValue;
-      noteList.find(note => note.id === idValue).content = contentValue;
+      if (noteList.find(note => note.id === idValue).title === titleValue
+        && noteList.find(note => note.id === idValue).content === contentValue) {
+          noteList.find(note => note.id === idValue).title = titleValue;
+          noteList.find(note => note.id === idValue).content = contentValue;
+        changesMadeToNotes = true;
+      }
     } else {
-      noteList.push({ title: titleValue, content: contentValue, id: uuidv4() });
+      noteId = uuidv4();
+      noteList.push({ title: titleValue, content: contentValue, id: noteId });
+      changesMadeToNotes = true;
     }
     setNoteList(noteList.filter(note => note !== null));
     // Add to db
+    
+    // Update tags
+    noteList.find(note => note.id === idValue).tags = noteTagsRef.current;
+    setNoteList(noteList.filter(note => note !== null));
+
+    const data = {
+      "id": idValue !== null ? idValue : noteId,
+      "title": titleValue,
+      "content": contentValue,
+      "tags": noteTagsRef.current
+    }
+
+    setFetch(data, user_id, 'notes')
+      .then((error) => {
+        if (error !== false) {
+          // setError(error);
+          // setOpenErrorDialog(true);
+          return false;
+        }
+        // Login
+        
+      });
+
+    console.log('Note Submitted');
     setInputError(false);
     setTitle('');
     setContent('');
     setId(null);
     setNoteOpen(false);
-    // Update tags
-    noteList.find(note => note.id === idValue).tags = noteTagsRef.current;
-    setNoteList(noteList.filter(note => note !== null));
   }
 
   function handleClickTag(name) {

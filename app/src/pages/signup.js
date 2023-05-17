@@ -9,7 +9,7 @@ import { useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { v4 as uuidv4 } from 'uuid';
+import { setFetch } from '../requestHandlers.js';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,13 +38,29 @@ export default function Login() {
       setError('Passwords should be at least 8 characters');
       return false;
     }
-    // Create user
-    //TODO: 
 
-    // Login
-    localStorage.setItem("user_id", 'u' + uuidv4());
-    localStorage.setItem("loggedIn", true);
-    navigate("/home");
+    // TODO: check that email is unique
+
+    const data = {
+      "id": email,
+      "password": password,
+      "notes": [],
+      "tags": []
+      }
+
+    // Create user
+    setFetch(data)
+      .then((error) => {
+        if (error !== false) {
+          setError(error);
+          setOpenErrorDialog(true);
+          return false;
+        }
+        // Login
+        localStorage.setItem("user_id", email);
+        localStorage.setItem("loggedIn", true);
+        navigate("/home");
+      });
   }
 
   const [openErrorDialog, setOpenErrorDialog] = useState(false);

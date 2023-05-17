@@ -8,7 +8,9 @@
           "id": "16c7f21e-ea8c-11ed-a05b-0242ac120003",
           "title": "Title 1",
           "content": "Et ipsum eos no sea voluptua, et sanctus eirmod at et consetetur at amet. Kasd et dolore sed no et..",
-          "tags": ["old"]
+          "tags": [
+            "old"
+          ]
         },
         {
           "id": "2040e094-ea8c-11ed-a05b-0242ac120003",
@@ -30,6 +32,14 @@
           "editing": false,
           "selected": false
         }
+      ]
+    },
+    {
+      "id": "16c7f21e-ea8c-11ed-a05b-0242ac120003",
+      "title": "Title 1",
+      "content": "Et ipsum eos no sea voluptua, et sanctus eirmod at et consetetur at amet. Kasd et dolore sed no et..",
+      "tags": [
+        "old"
       ]
     }
   ]
