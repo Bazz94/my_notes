@@ -191,7 +191,8 @@ export default function Home() {
       <TagDialog 
         user_id={user_id}
         noteList={noteList}
-        setNoteOpen={setNoteOpen}
+        noteListRef={noteListRef}
+        setNoteList={setNoteList}
         tagOpen={tagOpen}
         setTagOpen={setTagOpen}s
         tagList={tagList}

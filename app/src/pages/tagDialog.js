@@ -13,14 +13,25 @@ import { v4 as uuidv4 } from 'uuid';
 import { setFetch } from '../requestHandlers.js';
 
 export default function TagDialog(
-  { user_id, noteList, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
+  { user_id, noteList, noteListRef, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
     setOpenErrorDialog, setError }) {
 
 
   function handleClose() {
     // Add changes to the notes tags 
 
-    setTagOpen(false);
+    const data2 = { "notes": [...noteListRef.current] };
+    setFetch(data2, user_id)
+      .then((error) => {
+        if (error !== false) {
+          // Error message
+          setError(error);
+          setOpenErrorDialog(true);
+          // Rollback changes
+          return false;
+        }
+      });
+
     const data = { "tags": tagListRef.current };
     setFetch(data, user_id)
       .then((error) => {
@@ -31,8 +42,9 @@ export default function TagDialog(
           // Rollback changes
           return false;
         }
-        console.log('added new tag to db');
       });
+
+    setTagOpen(false);
     setTagName('');
   }
 
@@ -51,18 +63,18 @@ export default function TagDialog(
   }
 
   function handleTagEdit(tag) {
-    // TODO: Editing tags should also update note tags list
+    // When no changes are made the db should not be set
     if (tagList.find(item => item.id === tag.id).editing !== true) {
       tagList.forEach((item) => {
         item.editing = false;
       });
       tagList.find(item => item.id === tag.id).editing = true;
+      setTagList([...tagList]);
     } else {
       tagList.find(item => item.id === tag.id).editing = false;
       noteList.forEach((note) => {
-        console.log(note.title,' contains tag ',note.tags.find(item => item.id === tag.id) != null);
         if (note.tags.find(item => item.id === tag.id) != null) {
-          note.tags.find(item => item.id === tag.id).name = tagListRef.current.find(item => item.id === tag.id).name;
+          note.tags.find(item => item.id === tag.id).name = tagList.find(item => item.id === tag.id).name;
         }
       });
       setNoteList([...noteList]);
@@ -72,22 +84,17 @@ export default function TagDialog(
 
   function handleTagDelete(tag) {
     //TODO: When a tag is deleted it must also be removed from every note 
-    const tempTagList = tagList;
     const newList = tagList.filter(item => item.id !== tag.id);
     setTagList(newList);
-    const data = { "tags": newList };
-    setFetch(data, user_id)
-      .then((error) => {
-        if (error !== false) {
-          // Error message
-          setError(error);
-          setOpenErrorDialog(true);
-          // Rollback changes
-          setTagList([...tempTagList]);
-          return false;
-        }
-        console.log('deleted tag and updated db');
-      });
+
+    noteList.forEach((note) => {
+      if (note.tags.find(item => item.id === tag.id) != null) {
+        noteList.find(item => item === note).tags = note.tags.filter(item => item.id !== tag.id);
+      }
+    });
+    console.log(noteList);
+    setNoteList([...noteList]);
+
     setTagName('');
   }
 
