@@ -44,7 +44,7 @@ export default function tagList({
     setFilterNoteList([]);
     selected.forEach((tag) => {
       noteList.forEach((note) => {
-        if (note.tags.find(item => item === tag.name) != null) {
+        if (note.tags.find(item => item.id === tag.id) != null) {
           if (filterNoteListRef.current.find(item => item === note) == null) {
             filterNoteListRef.current.push(note);
             setFilterNoteList([...filterNoteListRef.current]);

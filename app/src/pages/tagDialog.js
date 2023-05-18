@@ -13,9 +13,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { setFetch } from '../requestHandlers.js';
 
 export default function TagDialog(
-  { user_id, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName, setOpenErrorDialog, setError }) {
+  { user_id, noteList, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
+    setOpenErrorDialog, setError }) {
+
 
   function handleClose() {
+    // Add changes to the notes tags 
+
     setTagOpen(false);
     const data = { "tags": tagListRef.current };
     setFetch(data, user_id)
@@ -46,22 +50,30 @@ export default function TagDialog(
     setTagList([...tagList]);
   }
 
-  function handleTagEdit(id) {
-    if (tagList.find(tag => tag.id === id).editing !== true) {
-      tagList.forEach((tag) => {
-        tag.editing = false;
+  function handleTagEdit(tag) {
+    // TODO: Editing tags should also update note tags list
+    if (tagList.find(item => item.id === tag.id).editing !== true) {
+      tagList.forEach((item) => {
+        item.editing = false;
       });
-      tagList.find(tag => tag.id === id).editing = true;
+      tagList.find(item => item.id === tag.id).editing = true;
     } else {
-      tagList.find(tag => tag.id === id).editing = false;
+      tagList.find(item => item.id === tag.id).editing = false;
+      noteList.forEach((note) => {
+        console.log(note.title,' contains tag ',note.tags.find(item => item.id === tag.id) != null);
+        if (note.tags.find(item => item.id === tag.id) != null) {
+          note.tags.find(item => item.id === tag.id).name = tagListRef.current.find(item => item.id === tag.id).name;
+        }
+      });
+      setNoteList([...noteList]);
     }
     setTagList([...tagList]);
   }
 
-  function handleTagDelete(id) {
+  function handleTagDelete(tag) {
     //TODO: When a tag is deleted it must also be removed from every note 
     const tempTagList = tagList;
-    const newList = tagList.filter(tag => tag.id !== id)
+    const newList = tagList.filter(item => item.id !== tag.id);
     setTagList(newList);
     const data = { "tags": newList };
     setFetch(data, user_id)
@@ -104,7 +116,7 @@ export default function TagDialog(
             </Stack>
             {tagList.map((tag) => (
               <Stack direction="row" key={tag.id}>
-                <IconButton aria-label="delete" onClick={(e) => handleTagEdit(tag.id)}>
+                <IconButton aria-label="delete" onClick={(e) => handleTagEdit(tag)}>
                   {tag.editing ? <DoneIcon /> : <EditIcon />}
                 </IconButton>
                 <TextField key={tag.id} 
@@ -123,7 +135,7 @@ export default function TagDialog(
                     setTagList([...tagList]);
                   }}
                 />
-                {tag.editing ? <IconButton aria-label="delete" onClick={(e) => handleTagDelete(tag.id)}>
+                {tag.editing ? <IconButton aria-label="delete" onClick={(e) => handleTagDelete(tag)}>
                   <DeleteIcon />
                 </IconButton> : null}
               </Stack>

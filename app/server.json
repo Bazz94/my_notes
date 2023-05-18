@@ -8,7 +8,14 @@
           "id": "16c7f21e-ea8c-11ed-a0c5b-06242ac120003",
           "title": "Title 1",
           "content": "sEt ipsum eos no sea voluptua, et sanctus eirmod at et consetetur at amet. Kasd et dolore sed no et..",
-          "tags": []
+          "tags": [
+            {
+              "id": "7111a188-14e2-48ac-badb-70951e0218af",
+              "name": "old",
+              "editing": false,
+              "selected": false
+            }
+          ]
         },
         {
           "id": "16c7f21e-ea8c-c11ed-a05b-06242ac120003",
@@ -20,15 +27,13 @@
           "id": "16c7f21e-ea8c-11ed-a05b-02452ac120003",
           "title": "Title 3",
           "content": "Et ipsum eos no sea voluptua, et sanctus eirmod at et consetetur at amet. Kasd et dolore sed no et..",
-          "tags": [
-            "old"
-          ]
+          "tags": []
         }
       ],
       "tags": [
         {
-          "id": "1",
-          "name": "old",
+          "id": "7111a188-14e2-48ac-badb-70951e0218af",
+          "name": "older",
           "editing": false,
           "selected": false
         }

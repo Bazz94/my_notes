@@ -84,11 +84,11 @@ export default function NoteDialog({
     setNoteOpen(false);
   }
 
-  function handleClickTag(name) {
-    if (noteTags.includes(name)) {
-      setNoteTags(noteTags.filter(item => item !== name));
+  function handleClickTag(tag) {
+    if (noteTags.find(item => item.id === tag.id) != null) {
+      setNoteTags(noteTags.filter(item => item.id !== tag.id));
     } else {
-      noteTags.push(name);
+      noteTags.push(tag);
       setNoteTags([...noteTagsRef.current]);
     }
   }
@@ -127,12 +127,13 @@ export default function NoteDialog({
           {tagList.map((tag) => (
             <Chip key={tag.id}
               color='info'
-            variant={noteTags.includes(tag.name) 
-              ? "filled" : "outlined"} 
+              variant={noteTags.find(item => item.id === tag.id) != null 
+                ? "filled" : "outlined"} 
               onClick={() => {
-                handleClickTag(tag.name);
+                handleClickTag(tag);
               }}
-              label={tag.name}>
+              label={tag.name}
+              sx={{margin: "1px"}}>
             </Chip>
           ))}
         </Stack>
