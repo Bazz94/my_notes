@@ -18,7 +18,7 @@ export default function Login() {
   const [passwordCheck, setPasswordCheck] = useState('');
   const [error, setError] = useState(null);
 
-  function handleSignUp() {
+  async function handleSignUp() {
     // Check that password match
     if (password !== passwordCheck) {
       setError('Passwords do not match');

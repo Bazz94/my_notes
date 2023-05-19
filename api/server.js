@@ -11,7 +11,16 @@ db.once('open', () => console.log('Connected to Database'));
 
 app.use(express.json());
 
-const usersRouter = require('./routes/users.js');
-app.use('/users', usersRouter);
+// Login and Sign up
+const authRouter = require('./routes/auth.js');
+app.use('/auth', authRouter);
+
+// Notes
+const notesRouter = require('./routes/notes.js');
+app.use('/notes', notesRouter);
+
+// Tags
+const tagsRouter = require('./routes/tags.js');
+app.use('/tags', tagsRouter);
 
 app.listen(8080, () => console.log('Server Started'));

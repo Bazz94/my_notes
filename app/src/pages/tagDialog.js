@@ -18,8 +18,6 @@ export default function TagDialog(
 
 
   function handleClose() {
-    // Add changes to the notes tags 
-
     const data2 = { "notes": [...noteListRef.current] };
     setFetch(data2, user_id)
       .then((error) => {
@@ -63,7 +61,6 @@ export default function TagDialog(
   }
 
   function handleTagEdit(tag) {
-    // When no changes are made the db should not be set
     if (tagList.find(item => item.id === tag.id).editing !== true) {
       tagList.forEach((item) => {
         item.editing = false;
@@ -83,7 +80,6 @@ export default function TagDialog(
   }
 
   function handleTagDelete(tag) {
-    //TODO: When a tag is deleted it must also be removed from every note 
     const newList = tagList.filter(item => item.id !== tag.id);
     setTagList(newList);
 
