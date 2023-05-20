@@ -1,5 +1,30 @@
-GET http://0.0.0.0:8080/notes/12
+GET http://0.0.0.0:8080/auth/all
 
 ###
 
-GET http://0.0.0.0:8080/users/12
+GET http://0.0.0.0:8080/auth 
+Content-Type: application/json
+
+{
+  "email": "fake@email.com",
+  "password": "12341234"
+}
+
+###
+
+POST http://0.0.0.0:8080/auth 
+Content-Type: application/json
+
+{
+  "email": "cake@email.com",
+  "password": "12341234"
+}
+
+###
+
+DELETE http://0.0.0.0:8080/auth 
+Content-Type: application/json
+
+{
+  "email": "cake@email.com"
+}
