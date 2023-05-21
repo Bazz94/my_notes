@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/users.js');
+const User = require('../models/user.js');
 
 // All users (remove after testing)
 router.get('/all', async (req, res) => {
   try {
     const users = await User.find();
-    res.status(200).json(users);
+    return res.status(200).json(users);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -18,32 +18,41 @@ router.get('/', async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (email == null) {
-    res.status(400).json({ message: "email is required" });
+    return res.status(400).json({ message: "email is required" });
   }
   if (password == null) {
-    res.status(400).json({ message: "password is required" });
+    return res.status(400).json({ message: "password is required" });
   }
   // check that credentials are correct
   try {
     const users = await User.find({ email: email, password: password});
     if (users.length == 0) {
-      res.status(400).json({ message: "credentials are incorrect" });
+      return res.status(400).json({ message: "credentials are incorrect" });
     }
     // return user id
-    res.status(200).json({ user_id: users.at(0)._id });
+    return res.status(200).json({ user_id: users.at(0)._id });
   } catch (err) {
-    res.status(500).json({message: err.message});
+    return res.status(500).json({message: err.message});
   }
-  
 });
 
-// Create user
+// Sign up / Create user
 router.post('/', async (req, res) => {
   // get email and password from body
   const email = req.body.email;
   const password = req.body.password;
-  // check that email is unique 
+  if (email == null) {
+    return res.status(400).json({ message: "email is required" });
+  }
+  if (password == null) {
+    return res.status(400).json({ message: "password is required" });
+  }
   try {
+    // check that email is unique 
+    const users = await User.find({ email: email });
+    if (users.length > 0) {
+      return res.status(400).json({ message: "email already exists" });
+    }
     // create user
     const user = new User({
       email: email,
@@ -53,9 +62,9 @@ router.post('/', async (req, res) => {
     });
     const newUser = await user.save();
     // return user id
-    res.status(201).json(newUser._id);
+    return res.status(201).json(newUser._id);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -67,13 +76,13 @@ router.delete('/', async (req, res) => {
   try {
     const users = await User.find({ email: email });
     if (users.length == 0) {
-      res.status(400).json({ message: "email not found" });
+      return res.status(400).json({ message: "email not found" });
     }
     users.at(0).deleteOne();
     // return user id
-    res.status(200).json({ message: "user deleted"});
+    return res.status(200).json({ message: "user deleted"});
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 });
 

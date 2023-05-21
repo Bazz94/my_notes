@@ -1,19 +1,20 @@
 const mongoose = require('mongoose');
 
-const tagsSchema = new mongoose.Schema({
+const tagSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
 });
 
-const notesSchema = new mongoose.Schema({
+const noteSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true
   },
   content: {
-    type: Number,
+    type: String,
     required: true
   },
   created: {
@@ -26,7 +27,7 @@ const notesSchema = new mongoose.Schema({
     default: Date.now,
     required: true
   },
-  tags: [tagsSchema],
+  tags: [tagSchema],
 });
 
 const userSchema = new mongoose.Schema({
@@ -39,8 +40,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  notes: [notesSchema],
-  tags: [tagsSchema]
+  notes: [noteSchema],
+  tags: [tagSchema]
 });
 
 module.exports = mongoose.model('user', userSchema);

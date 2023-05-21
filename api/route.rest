@@ -1,7 +1,6 @@
 GET http://0.0.0.0:8080/auth/all
 
 ###
-
 GET http://0.0.0.0:8080/auth 
 Content-Type: application/json
 
@@ -11,7 +10,6 @@ Content-Type: application/json
 }
 
 ###
-
 POST http://0.0.0.0:8080/auth 
 Content-Type: application/json
 
@@ -21,10 +19,79 @@ Content-Type: application/json
 }
 
 ###
-
 DELETE http://0.0.0.0:8080/auth 
 Content-Type: application/json
 
 {
   "email": "cake@email.com"
+}
+
+
+// Notes
+###
+GET http://0.0.0.0:8080/notes
+Content-Type: application/json
+
+{
+  "user_id": "6468c43eac69061ee0519008"
+}
+
+###
+POST http://0.0.0.0:8080/notes
+Content-Type: application/json
+
+{
+  "user_id": "6468c43eac69061ee0519008",
+  "title": "aTitle",
+  "content": "the the the content content content"
+}
+
+###
+PATCH http://0.0.0.0:8080/notes
+Content-Type: application/json
+
+{
+  "user_id": "6468c43eac69061ee0519008",
+  "note_id": "646a300ee5c4539853b8aac3",
+  "title": "Title Updated"
+}
+
+###
+DELETE http://0.0.0.0:8080/notes
+Content-Type: application/json
+
+{
+  "user_id": "6468c43eac69061ee0519008",
+  "note_id": "646a33dcdca7b168d827af98"
+}
+
+
+// Tags
+###
+GET http://0.0.0.0:8080/tags
+
+
+###
+POST http://0.0.0.0:8080/tags
+Content-Type: application/json
+
+{
+  "name": "new"
+}
+
+###
+PATCH http://0.0.0.0:8080/tags
+Content-Type: application/json
+
+{
+  "id": "646a5f5691c02d9506e8fe20",
+  "name": "other"
+}
+
+###
+DELETE http://0.0.0.0:8080/tags
+Content-Type: application/json
+
+{
+  "id": "646a5f5691c02d9506e8fe20"
 }
