@@ -18,17 +18,39 @@ export default function tagList({
     setTagOpen(true);
   }
 
-  function handleTag(tag) {
+  async function handleTag(tag) {
     // Set tag 
-    tagList.find(item => item === tag).selected = !(tag.selected);
+    const tempSelected = tag.selected;
+    tagList.find(item => item === tag).selected = !(tempSelected);
     setTagList([...tagList]);
     // Unselect all other tags
-    tagList.forEach((item) => {
-      if (item !== tag) {
-        item.selected = false;
-        setTagList([...tagList]);
+    if (tag.selected === true) {
+      tagList.forEach((item) => {
+        if (item !== tag) {
+          item.selected = false;
+          setTagList([...tagList]);
+        }
+      });
+    }
+
+    const data = {
+      id: tag._id,
+      selected: !tempSelected,
+    }
+    // set tagList in db
+    await fetch(`http://localhost:8080/tags`, {
+      method: 'PATCH',
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+      .then((res) => {
+        if (res.ok) {
+          console.log('Tag selection updated');
+        }
       }
-    });
+    );
 
     // Check if tags are selected
     var selected = [];
@@ -44,7 +66,7 @@ export default function tagList({
     setFilterNoteList([]);
     selected.forEach((tag) => {
       noteList.forEach((note) => {
-        if (note.tags.find(item => item.id === tag.id) != null) {
+        if (note.tags.find(item => item._id === tag._id) != null) {
           if (filterNoteListRef.current.find(item => item === note) == null) {
             filterNoteListRef.current.push(note);
             setFilterNoteList([...filterNoteListRef.current]);
@@ -72,7 +94,7 @@ export default function tagList({
         <Divider/>
         </ButtonGroup>
         {tagList.map((tag) => (
-          <Chip key={tag.id}
+          <Chip key={tag._id}
             color='info'
             variant={tag.selected
               ? "filled" : "outlined"} 

@@ -29,7 +29,7 @@ Content-Type: application/json
 
 // Notes
 ###
-GET http://0.0.0.0:8080/notes
+GET http://0.0.0.0:8080/notes/6468c43eac69061ee0519008
 Content-Type: application/json
 
 {
@@ -37,13 +37,13 @@ Content-Type: application/json
 }
 
 ###
-POST http://0.0.0.0:8080/notes
+POST http://0.0.0.0:8080/notes/6468c43eac69061ee0519008
 Content-Type: application/json
 
 {
-  "user_id": "6468c43eac69061ee0519008",
   "title": "aTitle",
-  "content": "the the the content content content"
+  "content": "the the the content content content",
+  "tags": []
 }
 
 ###
@@ -52,9 +52,26 @@ Content-Type: application/json
 
 {
   "user_id": "6468c43eac69061ee0519008",
-  "note_id": "646a300ee5c4539853b8aac3",
+  "note_id": "646a33576366824ad14cc663",
   "title": "Title Updated"
 }
+
+###
+PATCH http://0.0.0.0:8080/notes/tags/6468c43eac69061ee0519008
+Content-Type: application/json
+
+[
+  {
+  "note_id": "646a33576366824ad14cc663",
+  "tag_id": "646a5a22e41c7965ea5ad991",
+  "name": "older"
+  },
+  {
+  "note_id": "646a33576366824ad14cc663",
+  "tag_id": "646a5a22e41c7965ea5ad991",
+  "name": "olderer"
+  }
+]
 
 ###
 DELETE http://0.0.0.0:8080/notes

@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import getFetch from '../requestHandlers';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,36 +27,39 @@ export default function Login() {
       setOpenErrorDialog(true);
       return false;
     }
-    // make a request with email
-    const response = await getFetch(inputEmail);
 
-    // TODO: Differentiate between error and incorrect email
-
-    if (response.error !== false) {
-      setError(response.error);
+    // Call api
+    const requestOptions = {
+      method: 'GET',
+      headers: {
+        'Authorization': JSON.stringify({ email: inputEmail, password: inputPassword })
+      }
+    };
+    fetch("http://localhost:8080/auth", requestOptions)
+    .then((res) => {
+      if (res.status === 500) {
+        throw Error('Server error');
+      }
+      if (res.status === 400) {
+        throw Error('Email or password is incorrect');
+      }
+      if (res.ok) {
+        return res.json();
+      }
+    }).then((data) => {
+      // Login
+      localStorage.setItem("user_id", data);
+      localStorage.setItem("loggedIn", true);
+      navigate("/home");
+    }).catch((err) => {
+      setError(err.message);
       setOpenErrorDialog(true);
       return false;
-    }
-
-    const user_id = inputEmail;
-    const retrievedPassword = response.data.password;
-    // check that the password matches the email
-    if (retrievedPassword !== inputPassword) {
-      setError('Credentials are incorrect (password)');
-      setOpenErrorDialog(true);
-      return false;
-    } 
-
-    // go to home
-    localStorage.setItem("user_id", user_id);
-    localStorage.setItem("loggedIn", true);
-    navigate("/home");
-
-    //else show error dialog
+    });
   }
 
+
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
-  
 
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);

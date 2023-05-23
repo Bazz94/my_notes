@@ -8,7 +8,6 @@ import { useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { setFetch } from '../requestHandlers.js';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -27,39 +26,50 @@ export default function Login() {
     } 
     if (email === '' ) {
       setError('Please enter an email address');
+      setOpenErrorDialog(true);
       return false;
     }
     if (password === '') {
       setError('Please enter a password');
+      setOpenErrorDialog(true);
       return false;
     }
     if (password.length < 7) {
       setError('Passwords should be at least 8 characters');
+      setOpenErrorDialog(true);
       return false;
     }
 
-    // TODO: check that email is unique
-
-    const data = {
-      "id": email,
-      "password": password,
-      "notes": [],
-      "tags": []
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        "Content-type": "application/json",
+        'Authorization': JSON.stringify({ email: email, password: password })
       }
-
-    // Create user
-    setFetch(data)
-      .then((error) => {
-        if (error !== false) {
-          setError(error);
-          setOpenErrorDialog(true);
-          return false;
-        }
-        // Login
-        localStorage.setItem("user_id", email);
-        localStorage.setItem("loggedIn", true);
-        navigate("/home");
-      });
+    };
+    fetch('http://localhost:8080/auth', requestOptions)
+    .then((res) => {
+      if (res.status === 500) {
+        throw Error("Server error");
+      } 
+      if (res.status === 400) {
+        setOpenErrorDialog(true);
+        throw Error("This email already exists");
+      }
+      if (res.ok) {
+        return res.json();
+      }
+    }).then((data) => {
+      // Login
+      localStorage.setItem("user_id", data);
+      localStorage.setItem("loggedIn", true);
+      navigate("/home");
+    }).catch((err) => {
+      setError(err.message);
+      console.log(err.message);
+      setOpenErrorDialog(true);
+      return false;
+    });
   }
 
   const [openErrorDialog, setOpenErrorDialog] = useState(false);

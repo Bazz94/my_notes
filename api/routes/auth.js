@@ -15,8 +15,13 @@ router.get('/all', async (req, res) => {
 // Login user
 router.get('/', async (req, res) => {
   // get email and password from body
-  const email = req.body.email;
-  const password = req.body.password;
+  const authorizationHeader = req.headers.authorization;
+  let email, password;
+  if (authorizationHeader) {
+      const credentials = JSON.parse(authorizationHeader);
+      email = credentials.email;
+      password = credentials.password;
+  }
   if (email == null) {
     return res.status(400).json({ message: "email is required" });
   }
@@ -30,7 +35,7 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ message: "credentials are incorrect" });
     }
     // return user id
-    return res.status(200).json({ user_id: users.at(0)._id });
+    return res.status(200).json( users.at(0)._id);
   } catch (err) {
     return res.status(500).json({message: err.message});
   }
@@ -39,8 +44,13 @@ router.get('/', async (req, res) => {
 // Sign up / Create user
 router.post('/', async (req, res) => {
   // get email and password from body
-  const email = req.body.email;
-  const password = req.body.password;
+  const authorizationHeader = req.headers.authorization;
+  let email, password;
+  if (authorizationHeader) {
+    const credentials = JSON.parse(authorizationHeader);
+    email = credentials.email;
+    password = credentials.password;
+  }
   if (email == null) {
     return res.status(400).json({ message: "email is required" });
   }
@@ -78,9 +88,9 @@ router.delete('/', async (req, res) => {
     if (users.length == 0) {
       return res.status(400).json({ message: "email not found" });
     }
-    users.at(0).deleteOne();
-    // return user id
-    return res.status(200).json({ message: "user deleted"});
+    await users.at(0).deleteOne();
+    // return status
+    return res.status(202).json("user deleted");
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

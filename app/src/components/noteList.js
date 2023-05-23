@@ -5,41 +5,43 @@ import Card from '@mui/material/Card';
 import { CardActionArea } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { setFetch } from '../requestHandlers.js';
 
 export default function NoteList({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
    handleNoteClick, setOpenErrorDialog, setError }) {
 
-  function handleNoteDelete(id) {
-    const tempNoteList = noteList;
-    const tempFilterNoteList = filterNoteList;
-    const newList = noteList.filter(note => note.id !== id);
-    const newFilterList = filterNoteList.filter(note => note.id !== id);
-    setNoteList(newList);
-    setFilterNoteList(newFilterList);
-    // TODO: sends all notes to db rather than deleting a single item
-    const data = { "notes": newList };
-    setFetch(data, user_id)
-      .then((error) => {
-        if (error !== false) {
-          // Error message
-          setError(error);
-          setOpenErrorDialog(true);
-          // Rollback changes
-          setNoteList([...tempNoteList]);
-          setFilterNoteList([...tempFilterNoteList]);
-          return false;
+  async function handleNoteDelete(id) {
+    const data = { note_id: id };
+
+    await fetch(`http://localhost:8080/notes/${user_id}`, {
+      method: 'DELETE',
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw Error(res.message);
         }
-        console.log('Update db after delete');
-      });
+        const newList = noteList.filter(note => note._id !== id);
+        const newFilterList = filterNoteList.filter(note => note._id !== id);
+        setNoteList(newList);
+        setFilterNoteList(newFilterList);
+        console.log('Note deleted');
+      }).catch((err) => {
+        setError(err.message);
+        setOpenErrorDialog(true);
+        return false;
+      }
+    );
   }
 
   return (
     <Stack spacing={1}>
       {filterNoteList.map((note) => (
-        <Card sx={{ minWidth: 200 }} key={note.id}>
+        <Card sx={{ minWidth: 200 }} key={note._id}>
           <Stack direction="row">
-            <CardActionArea onClick={(e) => handleNoteClick(note.id)}> 
+            <CardActionArea onClick={(e) => handleNoteClick(note._id)}> 
               <ListItem>
                 <ListItemText
                   primary={note.title}
@@ -47,7 +49,7 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
                 />
               </ListItem>
             </CardActionArea>
-            <IconButton aria-label="delete" onClick={(e) => handleNoteDelete(note.id)}>
+            <IconButton aria-label="delete" onClick={(e) => handleNoteDelete(note._id)}>
               <DeleteIcon />
             </IconButton>
           </Stack>

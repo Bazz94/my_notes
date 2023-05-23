@@ -5,15 +5,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import { useState } from 'react';
 import Stack from '@mui/material/Stack';
-import { v4 as uuidv4 } from 'uuid';
 import Chip from '@mui/material/Chip';
-import { setFetch } from '../requestHandlers.js';
 
 
 export default function NoteDialog({ 
-  user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, titleValue,
-  setTitle, contentValue, setContent, idValue, idValueRef, setId, noteTags, setNoteTags, noteTagsRef,
-  setOpenErrorDialog, setError }) {
+  user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, filterNoteList, 
+  setFilterNoteList, titleValue, setTitle, contentValue, setContent, idValue, idValueRef,
+  setId, noteTags, setNoteTags, noteTagsRef, setOpenErrorDialog, setError }) {
 
   const [inputError, setInputError] = useState(false);
 
@@ -25,54 +23,98 @@ export default function NoteDialog({
     setNoteTags([]);
   }; 
 
-  function handleNoteOkLocal() {
-    var noteId;
-    var changesMadeToNotes = false;
-    
-    const tempNoteList = noteList;
-    const tempNoteTags = noteTags;
+  async function handleNoteOk() {
 
     if (titleValue === '') {
       setInputError(true);
       return false;
     }
     if (idValue !== null) {
-      if (noteList.find(note => note.id === idValue).title !== titleValue
-        || noteList.find(note => note.id === idValue).content !== contentValue) {
-          noteList.find(note => note.id === idValue).title = titleValue;
-          noteList.find(note => note.id === idValue).content = contentValue;
-          changesMadeToNotes = true;
+      // Update note
+      if (noteList.find(note => note._id === idValue).title !== titleValue
+        || noteList.find(note => note._id === idValue).content !== contentValue
+        || noteList.find(note => note._id === idValue).tags !== noteTags
+          ) {
+          let data = {
+            note_id: idValue,
+            title: titleValue,
+            content: contentValue,
+            tags: noteTags
+          }
+
+          // Update db
+          await fetch(`http://localhost:8080/notes/${user_id}`, {
+            method: 'PATCH',
+            headers: {
+              "Content-type": "application/json"
+            },
+            body: JSON.stringify(data)
+          })
+            .then((res) => {
+              if (!res.ok) {
+                throw Error(res.message);
+              }
+              noteList.find(note => note._id === idValue).title = titleValue;
+              noteList.find(note => note._id === idValue).content = contentValue;
+              noteList.find(note => note._id === idValue).tags = noteTags;
+              filterNoteList.find(note => note._id === idValue).title = titleValue;
+              filterNoteList.find(note => note._id === idValue).content = contentValue;
+              filterNoteList.find(note => note._id === idValue).tags = noteTags;
+              setNoteList([...noteList]);
+
+              console.log('Notes updated');
+            }).catch((err) => {
+              setError(err.message);
+              setOpenErrorDialog(true);
+              return false;
+            }
+          );
       }
     } else {
-      noteId = uuidv4();
-      setId(noteId);
-      noteList.push({ id: noteId, title: titleValue, content: contentValue, tags: [] });
-      changesMadeToNotes = true;
-    }
+      // Create note
+      let noteId;
+      let data = {
+        title: titleValue,
+        content: contentValue,
+        tags: noteTags
+      }
 
-    if (noteList.find(note => note.id === idValueRef.current).tags !== noteTagsRef.current) {
-      noteList.find(note => note.id === idValueRef.current).tags = noteTagsRef.current;
-      changesMadeToNotes = true;
-    }
-
-    // Updating notes
-    // TODO: currently sending the whole note list rather then only updating was has changed
-    if (changesMadeToNotes) {
-      setNoteList([...noteList]);
-      const data = { "notes": noteListRef.current };
-      setFetch(data, user_id)
-      .then((error) => {
-        if (error !== false) {
-          // Error message
-          setError(error);
+      // Create note in db
+      await fetch(`http://localhost:8080/notes/${user_id}`, {
+        method: 'POST',
+        headers: {
+          "Content-type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw Error(res.message);
+          }
+          return res.json();
+        }).then((data) => {
+          noteId = data;
+          const note = { _id: noteId, title: titleValue, content: contentValue, tags: noteTags };
+          console.log("data: ", data);
+          setId(noteId);
+          noteList.unshift(note);
+          // Check to see if note can be displayed on filterNoteList
+          const selectedTag = tagList.find((item) => item.selected === true);
+          if (selectedTag == null) {
+            filterNoteList.unshift(note);
+          } 
+          console.log('is included ',noteTags.includes(selectedTag));
+          if (noteTags.includes(selectedTag)){
+            filterNoteList.unshift(note);
+          }
+          setNoteList([...noteList]);
+          console.log('Notes created');
+        }).catch((err) => {
+          setError(err.message);
           setOpenErrorDialog(true);
-          // Rollback changes
-          setNoteList([...tempNoteList]);
-          setNoteTags([...tempNoteTags]);
           return false;
         }
-        console.log('sent notes data');
-      });
+      );
     }
 
     // Clean up 
@@ -85,8 +127,8 @@ export default function NoteDialog({
   }
 
   function handleClickTag(tag) {
-    if (noteTags.find(item => item.id === tag.id) != null) {
-      setNoteTags(noteTags.filter(item => item.id !== tag.id));
+    if (noteTags.find(item => item._id === tag._id) != null) {
+      setNoteTags(noteTags.filter(item => item._id !== tag._id));
     } else {
       noteTags.push(tag);
       setNoteTags([...noteTagsRef.current]);
@@ -125,9 +167,9 @@ export default function NoteDialog({
         </DialogContent>
         <Stack direction='row' sx={{padding: '0px 1.5rem'}}>
           {tagList.map((tag) => (
-            <Chip key={tag.id}
+            <Chip key={tag._id}
               color='info'
-              variant={noteTags.find(item => item.id === tag.id) != null 
+              variant={noteTags.find(item => item._id === tag._id) != null 
                 ? "filled" : "outlined"} 
               onClick={() => {
                 handleClickTag(tag);
@@ -139,7 +181,7 @@ export default function NoteDialog({
         </Stack>
         <DialogActions>
           <Button onClick={noteCancel}>Cancel</Button>
-          <Button onClick={handleNoteOkLocal}>Ok</Button>
+          <Button onClick={handleNoteOk}>Ok</Button>
         </DialogActions>
       </Dialog>
   );

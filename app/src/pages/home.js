@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import Fab from '@mui/material/Fab';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LoadingComponent from '../components/loading.js';
-import getFetch from '../requestHandlers.js';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -29,7 +28,8 @@ export default function Home() {
   const user_id = localStorage.getItem('user_id');
 
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingN, setIsLoadingN] = useState(true);
+  const [isLoadingT, setIsLoadingT] = useState(true);
   const [error, setError] = useState(null);
 
 
@@ -41,10 +41,10 @@ export default function Home() {
   const [idValue, setId, idValueRef] = useState(null);
   const [noteTags, setNoteTags, noteTagsRef] = useState([]);
 
-  const [fatalError, setFatalError] = useState(false);
+  const [redirect, setRedirect] = useState(false);
 
   function handleNoteClick(id) {
-    const note = noteList.find(note => note.id === id);
+    const note = noteList.find(note => note._id === id);
     setId(id);
     setTitle(note.title);
     setContent(note.content);
@@ -75,33 +75,70 @@ export default function Home() {
 
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
-    if (fatalError) {
+    if (redirect) {
       localStorage.setItem("authenticated", false);
       localStorage.setItem("user-id", null);
       navigate("/login");
     }
   }
 
+
   // useEffect
   useEffect(() => {
-    getFetch(user_id)
-      .then((response) => {
-        if (response.error !== false) {
-          setFatalError(true);
-          setError(response.error);
-          setOpenErrorDialog(true);
-          setIsLoading(false);
-          return false;
+    // Get tags
+    fetch(`http://localhost:8080/tags`)
+      .then((res) => {
+        if (!res.ok) {
+          throw Error("Server error");
         }
-        setNoteList(response.data.notes);
-        setFilterNoteList(response.data.notes);
-        setTagList(response.data.tags);
-        setIsLoading(false);
-        console.log('Fetched user data for home page');
-      });
+        return res.json();
+      }).then((data) => {
+        setTagList(data);
+        setIsLoadingT(false);
+        console.log('Fetched tags for home page');
+        // Get notes
+        fetch(`http://localhost:8080/notes/${user_id}`)
+          .then((res) => {
+            if (!res.ok) {
+              throw Error("Server error");
+            }
+            return res.json();
+          }).then((data2) => {
+            setNoteList(data2);
+            const selectedTag = data.find((item) => item.selected === true);
+            if (selectedTag == null) {
+              setFilterNoteList(data2);
+            } else {
+              let tempList = [];
+              for (let note of data2) {
+                if (note.tags.find((item) => item._id === selectedTag._id) != null) {
+                  tempList.push(note);
+                }
+              }
+              setFilterNoteList(tempList);
+            }
+            setIsLoadingN(false);
+            console.log('Fetched user notes for home page');
+          }).catch((err2) => {
+            setRedirect(true);
+            setError(err2.message);
+            setOpenErrorDialog(true);
+            setIsLoadingN(false);
+            return false;
+          }
+        );
+      }).catch((err) => {
+        setRedirect(true);
+        setError(err.message);
+        setOpenErrorDialog(true);
+        setIsLoadingT(false);
+        return false;
+      }
+    );
+    
   }, [setFilterNoteList, setNoteList, setTagList, user_id]);
 
-  return isLoading ? (<LoadingComponent/>) : (
+  return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
           width: 'clamp(350px,80%,60rem)', 
@@ -175,6 +212,8 @@ export default function Home() {
         noteList={noteList}
         noteListRef={noteListRef}
         setNoteList={setNoteList}
+        filterNoteList={filterNoteList}
+        setFilterNoteList={setFilterNoteList}  
         titleValue={titleValue}
         setTitle={ setTitle}
         contentValue={ contentValue}

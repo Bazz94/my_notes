@@ -5,8 +5,10 @@ const tagSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-
   },
+  selected: {
+    type: Boolean,
+  }
 });
 
 module.exports = mongoose.model('tag', tagSchema);
