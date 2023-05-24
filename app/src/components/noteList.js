@@ -41,7 +41,7 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
       {filterNoteList.map((note) => (
         <Card sx={{ minWidth: 200 }} key={note._id}>
           <Stack direction="row">
-            <CardActionArea onClick={(e) => handleNoteClick(note._id)}> 
+            <CardActionArea onClick={(e) => handleNoteClick(note)}> 
               <ListItem>
                 <ListItemText
                   primary={note.title}

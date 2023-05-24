@@ -20,23 +20,22 @@ export default function tagList({
 
   async function handleTag(tag) {
     // Set tag 
-    const tempSelected = tag.selected;
-    tagList.find(item => item === tag).selected = !(tempSelected);
-    setTagList([...tagList]);
+    tag.selected = !tag.selected;
     // Unselect all other tags
     if (tag.selected === true) {
       tagList.forEach((item) => {
         if (item !== tag) {
           item.selected = false;
-          setTagList([...tagList]);
         }
       });
     }
+    setTagList([...tagList]);
 
     const data = {
       id: tag._id,
-      selected: !tempSelected,
+      selected: tag.selected,
     }
+    
     // set tagList in db
     await fetch(`http://localhost:8080/tags`, {
       method: 'PATCH',
@@ -67,7 +66,7 @@ export default function tagList({
     selected.forEach((tag) => {
       noteList.forEach((note) => {
         if (note.tags.find(item => item._id === tag._id) != null) {
-          if (filterNoteListRef.current.find(item => item === note) == null) {
+          if (filterNoteListRef.current.find(item => item._id === note._id) == null) {
             filterNoteListRef.current.push(note);
             setFilterNoteList([...filterNoteListRef.current]);
           }

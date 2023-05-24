@@ -10,6 +10,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
 
+
+var oldTag;
+
 export default function TagDialog(
   { user_id, noteList, noteListRef, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
     setOpenErrorDialog, setError }) {
@@ -62,25 +65,28 @@ export default function TagDialog(
     setTagName('');
   }
 
+  
   async function handleTagEdit(tag) {
-    let oldName;
-    if (tagList.find(item => item._id === tag._id).editing !== true) {
-      oldName = tag.name;
+    if (tag.editing !== true) {
       tagList.forEach((item) => {
+        if (item.editing === true) {
+          item.name = oldTag.name;
+        }
         item.editing = false;
       });
-      tagList.find(item => item._id === tag._id).editing = true;
+      oldTag = {...tag};
+      tag.editing = true;
       setTagList([...tagList]);
     } else {
       let noteEditLog = [];
       const tempNoteList = noteList;
-      tagList.find(item => item._id === tag._id).editing = false;
-      if (oldName !== tag.name) {
+      tag.editing = false;
+      if  (oldTag.name !== tag.name) {
         noteList.forEach((note) => {
-          if (note.tags.find(item => item._id === tag._id) != null) {
-            const newName = tagList.find(item => item._id === tag._id).name;
-            noteEditLog.push({ note_id: note._id, tag_id: tag._id, name: newName});
-            note.tags.find(item => item._id === tag._id).name = newName;
+          const noteTag = note.tags.find(item => item._id === tag._id); 
+          if (noteTag != null) {
+            noteEditLog.push({ note_id: note._id, tag_id: tag._id, name: tag.name });
+            noteTag.name = tag.name;
           }
         });
         const data = {
@@ -103,7 +109,9 @@ export default function TagDialog(
             console.log('Tags updated');
           }).catch((err) => {
             // revert changes
-            tagList.find(item => item._id === tag._id).name = oldName;
+            tag.name = oldTag.name;
+            setTagList([...tagList]);
+            console.log(oldTag);
             setNoteList([...tempNoteList]);
             setError(err.message);
             setOpenErrorDialog(true);
@@ -127,7 +135,8 @@ export default function TagDialog(
             console.log('Notes updated');
           }).catch((err) => {
             // revert changes
-            tagList.find(item => item._id === tag._id).name = oldName;
+            tag.name = oldTag.name;
+            setTagList([...tagList]);
             setNoteList([...tempNoteList]);
             setError(err.message);
             setOpenErrorDialog(true);
@@ -135,6 +144,8 @@ export default function TagDialog(
           }
         );
       }
+      tag.editing = false;
+      setTagList([...tagList]);
     }
   }
 
@@ -148,7 +159,7 @@ export default function TagDialog(
     noteList.forEach((note) => {
       if (note.tags.find(item => item._id === tag._id) != null) {
         noteDeleteLog.push({ note_id: note._id, tag_id: tag._id });
-        noteList.find(item => item === note).tags = note.tags.filter(item => item._id !== tag._id);
+        note.tags = note.tags.filter(item => item._id !== tag._id);
       }
     });
     
@@ -243,10 +254,10 @@ export default function TagDialog(
                   fullWidth
                   variant="standard"
                   size="medium"
-                  value={tagList.find(item => item._id === tag._id).name}
+                  value={tag.name}
                   disabled={!(tag.editing)}
                   onChange={(e) => {
-                    tagList.find(item => item._id === tag._id).name = e.target.value;
+                    tag.name = e.target.value;
                     setTagList([...tagList]);
                   }}
                 />

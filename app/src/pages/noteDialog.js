@@ -6,11 +6,14 @@ import DialogContent from '@mui/material/DialogContent';
 import { useState } from 'react';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
+import Typography from '@mui/material/Typography'
+import { Box } from '@mui/material';
+
 
 
 export default function NoteDialog({ 
   user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, filterNoteList, 
-  setFilterNoteList, titleValue, setTitle, contentValue, setContent, idValue, idValueRef,
+  setFilterNoteList, titleValue, setTitle, contentValue, setContent, created, modified, idValue, idValueRef,
   setId, noteTags, setNoteTags, noteTagsRef, setOpenErrorDialog, setError }) {
 
   const [inputError, setInputError] = useState(false);
@@ -31,9 +34,10 @@ export default function NoteDialog({
     }
     if (idValue !== null) {
       // Update note
-      if (noteList.find(note => note._id === idValue).title !== titleValue
-        || noteList.find(note => note._id === idValue).content !== contentValue
-        || noteList.find(note => note._id === idValue).tags !== noteTags
+      const note = noteList.find(note => note._id === idValue);
+      if (note.title !== titleValue
+        || note.content !== contentValue
+        || note.tags !== noteTags
           ) {
           let data = {
             note_id: idValue,
@@ -54,12 +58,13 @@ export default function NoteDialog({
               if (!res.ok) {
                 throw Error(res.message);
               }
-              noteList.find(note => note._id === idValue).title = titleValue;
-              noteList.find(note => note._id === idValue).content = contentValue;
-              noteList.find(note => note._id === idValue).tags = noteTags;
-              filterNoteList.find(note => note._id === idValue).title = titleValue;
-              filterNoteList.find(note => note._id === idValue).content = contentValue;
-              filterNoteList.find(note => note._id === idValue).tags = noteTags;
+              note.title = titleValue;
+              note.content = contentValue;
+              note.tags = noteTags;
+              const filterNote = filterNoteList.find(note => note._id === idValue);
+              filterNote.title = titleValue;
+              filterNote.content = contentValue;
+              filterNote.tags = noteTags;
               setNoteList([...noteList]);
 
               console.log('Notes updated');
@@ -94,18 +99,18 @@ export default function NoteDialog({
           return res.json();
         }).then((data) => {
           noteId = data;
-          const note = { _id: noteId, title: titleValue, content: contentValue, tags: noteTags };
+          const newNote = { _id: noteId, title: titleValue, content: contentValue, tags: noteTags };
           console.log("data: ", data);
           setId(noteId);
-          noteList.unshift(note);
+          noteList.unshift(newNote);
           // Check to see if note can be displayed on filterNoteList
           const selectedTag = tagList.find((item) => item.selected === true);
           if (selectedTag == null) {
-            filterNoteList.unshift(note);
+            filterNoteList.unshift(newNote);
           } 
           console.log('is included ',noteTags.includes(selectedTag));
           if (noteTags.includes(selectedTag)){
-            filterNoteList.unshift(note);
+            filterNoteList.unshift(newNote);
           }
           setNoteList([...noteList]);
           console.log('Notes created');
@@ -131,7 +136,7 @@ export default function NoteDialog({
       setNoteTags(noteTags.filter(item => item._id !== tag._id));
     } else {
       noteTags.push(tag);
-      setNoteTags([...noteTagsRef.current]);
+      setNoteTags([...noteTags]);
     }
   }
 
@@ -179,10 +184,18 @@ export default function NoteDialog({
             </Chip>
           ))}
         </Stack>
-        <DialogActions>
-          <Button onClick={noteCancel}>Cancel</Button>
-          <Button onClick={handleNoteOk}>Ok</Button>
-        </DialogActions>
+        <Stack direction='row-reverse'>
+          <DialogActions>
+            <Button onClick={noteCancel}>Cancel</Button>
+            <Button onClick={handleNoteOk}>Ok</Button>
+          </DialogActions>
+          <Box sx={{width: '63%'}}></Box>
+        <Stack direction='row-reverse' sx={{ margin: '1rem 1.5rem' }}>
+          <Typography sx={{ marginRight: '1rem' }}
+            variant="caption" color="common"> Modified {modified}
+          </Typography>
+          </Stack>
+        </Stack>
       </Dialog>
   );
 }

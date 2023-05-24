@@ -40,15 +40,28 @@ export default function Home() {
   const [contentValue, setContent] = useState('');
   const [idValue, setId, idValueRef] = useState(null);
   const [noteTags, setNoteTags, noteTagsRef] = useState([]);
-
   const [redirect, setRedirect] = useState(false);
+  const [created, setCreated] = useState(null);
+  const [modified, setModified] = useState(null);
 
-  function handleNoteClick(id) {
-    const note = noteList.find(note => note._id === id);
-    setId(id);
+  function handleNoteClick(note) {
+    setId(note._id);
     setTitle(note.title);
     setContent(note.content);
     setNoteTags([...note.tags]);
+    const formatCreated = new Date(note.created).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+    setCreated(formatCreated);
+    const formatModified = new Date(note.modified).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+    setModified(formatModified);
+    console.log(note.created, ' ', note.modified);
     setNoteOpen(true);
   }
 
@@ -120,22 +133,23 @@ export default function Home() {
             setIsLoadingN(false);
             console.log('Fetched user notes for home page');
           }).catch((err2) => {
+            setIsLoadingT(false);
+            setIsLoadingN(false);
             setRedirect(true);
             setError(err2.message);
             setOpenErrorDialog(true);
-            setIsLoadingN(false);
             return false;
           }
         );
       }).catch((err) => {
+        setIsLoadingT(false);
+        setIsLoadingN(false);
         setRedirect(true);
         setError(err.message);
         setOpenErrorDialog(true);
-        setIsLoadingT(false);
         return false;
       }
     );
-    
   }, [setFilterNoteList, setNoteList, setTagList, user_id]);
 
   return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
@@ -220,6 +234,8 @@ export default function Home() {
         setContent={setContent }
         idValue={ idValue}
         idValueRef={idValueRef}
+        created={created}
+        modified={modified}
         setId={ setId}
         noteTags={noteTags }
         setNoteTags={setNoteTags}
