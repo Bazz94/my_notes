@@ -12,7 +12,7 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
   async function handleNoteDelete(id) {
     const data = { note_id: id };
 
-    await fetch(`http://localhost:8080/notes/${user_id}`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
       method: 'DELETE',
       headers: {
         "Content-type": "application/json"

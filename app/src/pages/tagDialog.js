@@ -40,7 +40,7 @@ export default function TagDialog(
       name: tagName,
     }
 
-    await fetch(`http://localhost:8080/tags`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
       method: 'POST',
       headers: {
         "Content-type": "application/json"
@@ -94,7 +94,7 @@ export default function TagDialog(
           name: tag.name,
         }
         // set tagList in db
-        await fetch(`http://localhost:8080/tags`, {
+        await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
           method: 'PATCH',
           headers: {
             "Content-type": "application/json"
@@ -120,7 +120,7 @@ export default function TagDialog(
         );
 
         // set noteList in db
-        await fetch(`http://localhost:8080/notes/tags/${user_id}`, {
+        await fetch(`${process.env.REACT_APP_API_URL}/notes/tags/${user_id}`, {
           method: 'PATCH',
           headers: {
             "Content-type": "application/json"
@@ -167,7 +167,7 @@ export default function TagDialog(
     const data = {
       id: tag._id,
     }
-    await fetch(`http://localhost:8080/tags`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
       method: 'DELETE',
       headers: {
         "Content-type": "application/json"
@@ -191,7 +191,7 @@ export default function TagDialog(
     );
     
     // set noteList in db
-    await fetch(`http://localhost:8080/notes/tags/${user_id}`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/notes/tags/${user_id}`, {
       method: 'DELETE',
       headers: {
         "Content-type": "application/json"

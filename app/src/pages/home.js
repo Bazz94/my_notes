@@ -25,7 +25,7 @@ export default function Home() {
   if (!userLoggedIn) {
     navigate("/login");
   }
-  const user_id = localStorage.getItem('user_id');
+  const user_id = localStorage.getItem('user-id');
 
 
   const [isLoadingN, setIsLoadingN] = useState(true);
@@ -78,8 +78,7 @@ export default function Home() {
   const [showLogOut, setShowLogOut, showLogOutRef] = useState(false);
 
   const handleLogOut = () => {
-    localStorage.setItem("authenticated", false);
-    localStorage.setItem("user-id", null);
+    localStorage.clear();
     navigate('/login');
   }
 
@@ -89,7 +88,7 @@ export default function Home() {
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
     if (redirect) {
-      localStorage.setItem("authenticated", false);
+      localStorage.setItem("loggedIn", false);
       localStorage.setItem("user-id", null);
       navigate("/login");
     }
@@ -99,7 +98,7 @@ export default function Home() {
   // useEffect
   useEffect(() => {
     // Get tags
-    fetch(`http://localhost:8080/tags`)
+    fetch(`${process.env.REACT_APP_API_URL}/tags`)
       .then((res) => {
         if (!res.ok) {
           throw Error("Server error");
@@ -110,7 +109,7 @@ export default function Home() {
         setIsLoadingT(false);
         console.log('Fetched tags for home page');
         // Get notes
-        fetch(`http://localhost:8080/notes/${user_id}`)
+        fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`)
           .then((res) => {
             if (!res.ok) {
               throw Error("Server error");

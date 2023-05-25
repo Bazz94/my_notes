@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Typography, Container } from "@mui/material";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import LoadingComponent from '../components/loading.js';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function Login() {
   const [inputEmail, setInputEmail] = useState('');
   const [inputPassword, setInputPassword] = useState('');
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function HandleLogin() {
     if (inputPassword === '') {
@@ -35,7 +37,8 @@ export default function Login() {
         'Authorization': JSON.stringify({ email: inputEmail, password: inputPassword })
       }
     };
-    fetch("http://localhost:8080/auth", requestOptions)
+    setIsLoading(true);
+    fetch(`${process.env.REACT_APP_API_URL}/auth`, requestOptions)
     .then((res) => {
       if (res.status === 500) {
         throw Error('Server error');
@@ -48,10 +51,12 @@ export default function Login() {
       }
     }).then((data) => {
       // Login
-      localStorage.setItem("user_id", data);
+      localStorage.setItem("user-id", data);
       localStorage.setItem("loggedIn", true);
+      setIsLoading(false);
       navigate("/home");
     }).catch((err) => {
+      setIsLoading(false);
       setError(err.message);
       setOpenErrorDialog(true);
       return false;
@@ -65,7 +70,7 @@ export default function Login() {
     setOpenErrorDialog(false);
   }
 
-  return (
+  return isLoading ? (<LoadingComponent />) : (
     <Container maxWidth="false"
       sx={{
         width: 'clamp(350px,60%,40rem)',

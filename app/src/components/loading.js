@@ -1,7 +1,6 @@
 import * as React from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
-import { alignProperty } from '@mui/material/styles/cssUtils';
 
 
 export default function Loading(){

@@ -37,7 +37,7 @@ export default function tagList({
     }
     
     // set tagList in db
-    await fetch(`http://localhost:8080/tags`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
       method: 'PATCH',
       headers: {
         "Content-type": "application/json"

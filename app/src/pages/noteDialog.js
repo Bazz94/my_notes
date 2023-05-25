@@ -47,7 +47,7 @@ export default function NoteDialog({
           }
 
           // Update db
-          await fetch(`http://localhost:8080/notes/${user_id}`, {
+        await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
             method: 'PATCH',
             headers: {
               "Content-type": "application/json"
@@ -85,7 +85,7 @@ export default function NoteDialog({
       }
 
       // Create note in db
-      await fetch(`http://localhost:8080/notes/${user_id}`, {
+      await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
         method: 'POST',
         headers: {
           "Content-type": "application/json"
