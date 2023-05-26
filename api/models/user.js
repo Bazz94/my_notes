@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+import bcrypt from "bcrypt";
+const SALT_WORK_FACTOR = 10;
 
 const tagSchema = new mongoose.Schema({
   name: {
@@ -6,6 +8,9 @@ const tagSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  selected: {
+    type: Boolean,
+  }
 });
 
 const noteSchema = new mongoose.Schema({
@@ -43,5 +48,24 @@ const userSchema = new mongoose.Schema({
   notes: [noteSchema],
   tags: [tagSchema]
 });
+
+// methods
+userSchema.pre('save', function (next) {
+  var user = this;
+
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified('password')){
+    return next();
+  } 
+  
+  const salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
+  const hash = bcrypt.hashSync(myPlaintextPassword, salt);
+  user.password = hash;
+  next();
+});
+
+userSchema.methods.comparePassword = async (candidatePassword) => {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('user', userSchema);

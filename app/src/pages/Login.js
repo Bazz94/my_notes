@@ -9,6 +9,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LoadingComponent from '../components/loading.js';
+import Cookies from 'js-cookie';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -51,8 +52,8 @@ export default function Login() {
       }
     }).then((data) => {
       // Login
-      localStorage.setItem("user-id", data);
-      localStorage.setItem("loggedIn", true);
+      const cookieOptions = { expires: 7, domain: process.env.REACT_APP_DOMAIN, secure: true };
+      Cookies.set('user-id', data, cookieOptions);
       setIsLoading(false);
       navigate("/home");
     }).catch((err) => {

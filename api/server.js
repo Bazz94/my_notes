@@ -19,6 +19,11 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
+app.get('/', async (req, res) => {
+  // test
+    return res.status(200).json("myNotes api is working");
+});
+
 // Login and Sign up
 const authRouter = require('./routes/auth.js');
 app.use('/auth', authRouter);
@@ -31,4 +36,4 @@ app.use('/notes', notesRouter);
 const tagsRouter = require('./routes/tags.js');
 app.use('/tags', tagsRouter);
 
-app.listen(5001, () => console.log('Server Started'));
+app.listen(8080, () => console.log('Server Started'));

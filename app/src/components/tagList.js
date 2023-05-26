@@ -7,7 +7,7 @@ import Chip from '@mui/material/Chip';
 import { Divider } from '@mui/material';
 
 export default function tagList({ 
-  tagList, filterNoteListRef, setTagList, noteList, setNoteOpen, setTagOpen,
+  user_id, tagList, filterNoteListRef, setTagList, noteList, setNoteOpen, setTagOpen,
    filterNoteList, setFilterNoteList}) {
 
   function handleAddNote() {
@@ -37,7 +37,7 @@ export default function tagList({
     }
     
     // set tagList in db
-    await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
       method: 'PATCH',
       headers: {
         "Content-type": "application/json"

@@ -16,17 +16,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import Button from '@mui/material/Button';
+import Cookies from 'js-cookie';
 
 
 export default function Home() {
   const navigate = useNavigate();
-
-  const userLoggedIn = localStorage.getItem("loggedIn");
-  if (!userLoggedIn) {
-    navigate("/login");
-  }
-  const user_id = localStorage.getItem('user-id');
-
 
   const [isLoadingN, setIsLoadingN] = useState(true);
   const [isLoadingT, setIsLoadingT] = useState(true);
@@ -61,7 +55,6 @@ export default function Home() {
       year: '2-digit'
     });
     setModified(formatModified);
-    console.log(note.created, ' ', note.modified);
     setNoteOpen(true);
   }
 
@@ -78,7 +71,7 @@ export default function Home() {
   const [showLogOut, setShowLogOut, showLogOutRef] = useState(false);
 
   const handleLogOut = () => {
-    localStorage.clear();
+    Cookies.remove('user-id');
     navigate('/login');
   }
 
@@ -88,17 +81,21 @@ export default function Home() {
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
     if (redirect) {
-      localStorage.setItem("loggedIn", false);
-      localStorage.setItem("user-id", null);
+      Cookies.remove('user-id');
       navigate("/login");
     }
   }
-
+  const [user_id, setUser_id, user_idRef] = useState(null);
 
   // useEffect
   useEffect(() => {
-    // Get tags
-    fetch(`${process.env.REACT_APP_API_URL}/tags`)
+    //Check logged in
+    setUser_id(Cookies.get('user-id'));
+    if (user_idRef.current == null) {
+      navigate("/login");
+    } else {
+      // Get data
+      fetch(`${process.env.REACT_APP_API_URL}/tags/${user_idRef.current}`)
       .then((res) => {
         if (!res.ok) {
           throw Error("Server error");
@@ -109,36 +106,36 @@ export default function Home() {
         setIsLoadingT(false);
         console.log('Fetched tags for home page');
         // Get notes
-        fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`)
-          .then((res) => {
-            if (!res.ok) {
-              throw Error("Server error");
-            }
-            return res.json();
-          }).then((data2) => {
-            setNoteList(data2);
-            const selectedTag = data.find((item) => item.selected === true);
-            if (selectedTag == null) {
-              setFilterNoteList(data2);
-            } else {
-              let tempList = [];
-              for (let note of data2) {
-                if (note.tags.find((item) => item._id === selectedTag._id) != null) {
-                  tempList.push(note);
-                }
-              }
-              setFilterNoteList(tempList);
-            }
-            setIsLoadingN(false);
-            console.log('Fetched user notes for home page');
-          }).catch((err2) => {
-            setIsLoadingT(false);
-            setIsLoadingN(false);
-            setRedirect(true);
-            setError(err2.message);
-            setOpenErrorDialog(true);
-            return false;
+        fetch(`${process.env.REACT_APP_API_URL}/notes/${user_idRef.current}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw Error("Server error");
           }
+          return res.json();
+        }).then((data2) => {
+          setNoteList(data2);
+          const selectedTag = data.find((item) => item.selected === true);
+          if (selectedTag == null) {
+            setFilterNoteList(data2);
+          } else {
+            let tempList = [];
+            for (let note of data2) {
+              if (note.tags.find((item) => item._id === selectedTag._id) != null) {
+                tempList.push(note);
+              }
+            }
+            setFilterNoteList(tempList);
+          }
+          setIsLoadingN(false);
+          console.log('Fetched user notes for home page');
+        }).catch((err2) => {
+          setIsLoadingT(false);
+          setIsLoadingN(false);
+          setRedirect(true);
+          setError(err2.message);
+          setOpenErrorDialog(true);
+          return false;
+        }
         );
       }).catch((err) => {
         setIsLoadingT(false);
@@ -148,8 +145,9 @@ export default function Home() {
         setOpenErrorDialog(true);
         return false;
       }
-    );
-  }, [setFilterNoteList, setNoteList, setTagList, user_id]);
+      );
+    }
+  }, [navigate, setFilterNoteList, setNoteList, setTagList, user_id]);
 
   return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
@@ -193,6 +191,7 @@ export default function Home() {
           <Box 
             sx={{ width: '20%' }}>
           <TagListComponent 
+            user_id={user_id}
             tagList={tagList} 
             filterNoteListRef={filterNoteListRef}
             setTagList={setTagList}

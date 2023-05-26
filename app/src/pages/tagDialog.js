@@ -40,7 +40,7 @@ export default function TagDialog(
       name: tagName,
     }
 
-    await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
       method: 'POST',
       headers: {
         "Content-type": "application/json"
@@ -94,7 +94,7 @@ export default function TagDialog(
           name: tag.name,
         }
         // set tagList in db
-        await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
+        await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
           method: 'PATCH',
           headers: {
             "Content-type": "application/json"
@@ -111,7 +111,6 @@ export default function TagDialog(
             // revert changes
             tag.name = oldTag.name;
             setTagList([...tagList]);
-            console.log(oldTag);
             setNoteList([...tempNoteList]);
             setError(err.message);
             setOpenErrorDialog(true);
@@ -167,7 +166,7 @@ export default function TagDialog(
     const data = {
       id: tag._id,
     }
-    await fetch(`${process.env.REACT_APP_API_URL}/tags`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
       method: 'DELETE',
       headers: {
         "Content-type": "application/json"

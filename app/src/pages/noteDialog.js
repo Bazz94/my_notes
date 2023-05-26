@@ -100,7 +100,6 @@ export default function NoteDialog({
         }).then((data) => {
           noteId = data;
           const newNote = { _id: noteId, title: titleValue, content: contentValue, tags: noteTags };
-          console.log("data: ", data);
           setId(noteId);
           noteList.unshift(newNote);
           // Check to see if note can be displayed on filterNoteList
@@ -108,7 +107,6 @@ export default function NoteDialog({
           if (selectedTag == null) {
             filterNoteList.unshift(newNote);
           } 
-          console.log('is included ',noteTags.includes(selectedTag));
           if (noteTags.includes(selectedTag)){
             filterNoteList.unshift(newNote);
           }

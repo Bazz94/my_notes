@@ -1,20 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const Tag = require('../models/tag.js');
+const User = require('../models/user.js');
+const Mongoose = require('mongoose');
 
 // Get all tags
-router.get('/',  async (req, res) => {
+router.get('/:id', getUser, async (req, res) => {
+  const user = res.user;
   try {
-    const tags = await Tag.find();
     // return tags
-    return res.status(200).json(tags);
+    return res.status(200).json(user.tags);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
 });
 
 // Create one tag
-router.post('/', async (req, res) => {
+router.post('/:id', getUser, async (req, res) => {
+  const user = res.user;
   const newName = req.body.name;
   if (newName == null) {
     return res.status(400).json({ message: "tag name is required" });
@@ -23,14 +25,16 @@ router.post('/', async (req, res) => {
     name: newName,
     selected: false
   };
+  const tag = user.tags.find((item) => item.name === newName);
+  if (tag != undefined) {
+    return res.status(400).json({ message: "duplicate name" });
+  }
   try {
     // Check that name is unique
-    const tags = await Tag.find({ name: newName });
-    if (tags.length > 0) {
-      return res.status(400).json({ message: "duplicate name" });
-    }
     // Create tag in db
-    const newTag = await Tag.create(tagData);
+    user.tags.push(tagData);
+    const newUser = await user.save();
+    const newTag = newUser.tags.find((item) => item.name === newName)
     // return tag id
     return res.status(201).json(newTag._id);
   } catch (err) {
@@ -39,9 +43,11 @@ router.post('/', async (req, res) => {
 });
 
 // Update one tag
-router.patch('/',  async (req, res) => {
+router.patch('/:id', getUser,  async (req, res) => {
+  const user = res.user;
   // Get tag id
   const id = req.body.id;
+  //const mId = new Mongoose.Types.ObjectId(id);
   const newName = req.body.name;
   const newSelected = req.body.selected;
   if (id == null) {
@@ -52,21 +58,24 @@ router.patch('/',  async (req, res) => {
   }
   try {
     // Check if id exists
-    const tags = await Tag.findById(id);
-    if (tags.length > 0) {
+    const tag = user.tags.find((item) => item._id == id);
+    if (tag === undefined) {
       return res.status(400).json({ message: "tag does not exist" });
     }
     if (newName != null) {
-      // Update tag data in db
-      await Tag.updateOne({_id: id}, {name: newName});
+      // Update tag name
+      tag.name = newName;
     }
     if (newSelected != null) {      
       // Update tag data in db
-      if (newSelected == true){
-        await Tag.updateMany({}, { selected: !newSelected }); 
+      if (newSelected === true){
+        user.tags.forEach((item) => {
+          item.selected = false;
+        });
       }
-      await Tag.updateOne({ _id: id }, { selected: newSelected });
+      tag.selected = newSelected;
     }
+    const newUser = await user.save();
     // return status
     return res.status(202).json("Tag updated");
   } catch(err) {
@@ -75,25 +84,44 @@ router.patch('/',  async (req, res) => {
 });
 
 // Delete one tag
-router.delete('/', async (req, res) => {
+router.delete('/:id', getUser, async (req, res) => {
   // Get tag id
+  const user = res.user;
   const id = req.body.id;
   if (id == null) {
     return res.status(400).json({ message: "tag id is required" });
   }
   try {
     // Check if id exists
-    const tags = await Tag.findById(id);
-    if (tags.length > 0) {
+    const tag = user.tags.find((item) => item._id == id);
+    if (tag === undefined) {
       return res.status(400).json({ message: "tag does not exist" });
     }
     // Delete tag in db
-    await Tag.deleteOne({ _id: id });
+    user.tags = user.tags.filter((item) => item._id !== tag._id);
+    const newUser = await user.save();
     // return status
     return res.status(202).json("Tag deleted");
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
 });
+
+async function getUser(req, res, next) {
+  let user;
+  if (req.params.id == null) {
+    return res.status(400).json({ message: "user id is required" });
+  }
+  try {
+    user = await User.findById(req.params.id);
+    if (user == null) {
+      return res.status(404).json({ message: 'user not found' });
+    }
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+  res.user = user;
+  next();
+}
 
 module.exports = router;
