@@ -67,8 +67,8 @@ export default function tagList({
       noteList.forEach((note) => {
         if (note.tags.find(item => item._id === tag._id) != null) {
           if (filterNoteListRef.current.find(item => item._id === note._id) == null) {
-            filterNoteListRef.current.push(note);
-            setFilterNoteList([...filterNoteListRef.current]);
+            const newFilterNoteList = [...filterNoteListRef.current, note];
+            setFilterNoteList(newFilterNoteList);
           }
         }
       });

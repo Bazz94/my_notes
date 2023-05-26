@@ -53,8 +53,9 @@ export default function TagDialog(
         }
         return res.json();
       }).then((data) => {
-        tagList.unshift({ _id: data, name: tagName, editing: false, selected: false })
-        setTagList([...tagList]);
+        const newTag = { _id: data, name: tagName, editing: false, selected: false };
+        const newTagList = [...tagList, newTag]; 
+        setTagList(newTagList);
         console.log('Tags updated');
       }).catch((err) => {
         setError(err.message);

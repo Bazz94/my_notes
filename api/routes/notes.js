@@ -57,9 +57,8 @@ router.post('/:id', getUser, async (req, res) => {
     });
     // get note that was created
     const addedNote = newUser.notes.find((n) => n.title === noteTitle && n.content === noteContent);
-
     // return status
-    return res.status(201).json(addedNote._id);
+    return res.status(201).json(addedNote);
   } catch(err) {
     return res.status(500).json({ message: err.message });
   }
@@ -92,18 +91,19 @@ router.patch('/:id', getUser, async (req, res) => {
       return res.status(400).json({ message: "note not found" });
     }
     // update note data in db
-    await User.findOneAndUpdate(
+    const modified = Date.now();
+    const user = await User.findOneAndUpdate(
       { _id: user_id, 'notes._id': note_id }, // Match the user and note IDs
       { $set: { 
         'notes.$.title': newTitle,  
         'notes.$.content': newContent,
         'notes.$.tags': newTags, 
-        'notes.$.modified': Date.now() 
+        'notes.$.modified': modified 
       } }, // Update the title and content of the matched note
       { new: true } // Return the updated user object
     );
     // return status
-    return res.status(202).json("Note updated");
+    return res.status(202).json(modified);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

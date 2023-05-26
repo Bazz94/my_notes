@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography'
@@ -13,8 +13,8 @@ import { Box } from '@mui/material';
 
 export default function NoteDialog({ 
   user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, filterNoteList, 
-  setFilterNoteList, titleValue, setTitle, contentValue, setContent, created, modified, idValue, idValueRef,
-  setId, noteTags, setNoteTags, noteTagsRef, setOpenErrorDialog, setError }) {
+  setFilterNoteList, filterNoteListRef, titleValue, setTitle, contentValue, setContent, created, modified, setModified,
+   idValue, idValueRef, setId, noteTags, setNoteTags, noteTagsRef, setOpenErrorDialog, setError }) {
 
   const [inputError, setInputError] = useState(false);
 
@@ -23,6 +23,7 @@ export default function NoteDialog({
     setContent('');
     setId(null);
     setNoteOpen(false);
+    setModified(null);
     setNoteTags([]);
   }; 
 
@@ -38,13 +39,13 @@ export default function NoteDialog({
       if (note.title !== titleValue
         || note.content !== contentValue
         || note.tags !== noteTags
-          ) {
-          let data = {
-            note_id: idValue,
-            title: titleValue,
-            content: contentValue,
-            tags: noteTags
-          }
+      ) {
+        let data = {
+          note_id: idValue,
+          title: titleValue,
+          content: contentValue,
+          tags: noteTags
+        }
 
           // Update db
         await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
@@ -58,15 +59,20 @@ export default function NoteDialog({
               if (!res.ok) {
                 throw Error(res.message);
               }
+              
+              return res.json();
+            }).then((data) => {
               note.title = titleValue;
               note.content = contentValue;
               note.tags = noteTags;
+              note.modified = data;
               const filterNote = filterNoteList.find(note => note._id === idValue);
               filterNote.title = titleValue;
               filterNote.content = contentValue;
               filterNote.tags = noteTags;
-              setNoteList([...noteList]);
-
+              filterNote.modified = data;
+              setNoteList([...noteListRef.current]);
+              setFilterNoteList([...filterNoteListRef.current]);
               console.log('Notes updated');
             }).catch((err) => {
               setError(err.message);
@@ -77,7 +83,7 @@ export default function NoteDialog({
       }
     } else {
       // Create note
-      let noteId;
+      
       let data = {
         title: titleValue,
         content: contentValue,
@@ -98,19 +104,26 @@ export default function NoteDialog({
           }
           return res.json();
         }).then((data) => {
-          noteId = data;
-          const newNote = { _id: noteId, title: titleValue, content: contentValue, tags: noteTags };
-          setId(noteId);
-          noteList.unshift(newNote);
+          const newNote = { 
+            _id: data._id, 
+            title: titleValue, 
+            content: contentValue, 
+            tags: noteTags, 
+            modified: data.modified
+          };
+          setId(data._id);
+          const newNoteList = [...noteList, newNote]
           // Check to see if note can be displayed on filterNoteList
           const selectedTag = tagList.find((item) => item.selected === true);
+          let newFilterNote = [];
           if (selectedTag == null) {
-            filterNoteList.unshift(newNote);
+            newFilterNote = [...filterNoteList, newNote];
           } 
           if (noteTags.includes(selectedTag)){
-            filterNoteList.unshift(newNote);
+            newFilterNote = [...filterNoteList, newNote];
           }
-          setNoteList([...noteList]);
+          setNoteList(newNoteList);
+          setFilterNoteList(newFilterNote);
           console.log('Notes created');
         }).catch((err) => {
           setError(err.message);
@@ -127,14 +140,15 @@ export default function NoteDialog({
     setContent('');
     setId(null);
     setNoteOpen(false);
+    setNoteTags([]);
   }
 
   function handleClickTag(tag) {
     if (noteTags.find(item => item._id === tag._id) != null) {
       setNoteTags(noteTags.filter(item => item._id !== tag._id));
     } else {
-      noteTags.push(tag);
-      setNoteTags([...noteTags]);
+      const newNoteTags = [...noteTags, tag]; 
+      setNoteTags(newNoteTags);
     }
   }
 
@@ -189,9 +203,11 @@ export default function NoteDialog({
           </DialogActions>
           <Box sx={{width: '63%'}}></Box>
         <Stack direction='row-reverse' sx={{ margin: '1rem 1.5rem' }}>
+          { modified && (
           <Typography sx={{ marginRight: '1rem' }}
             variant="caption" color="common"> Modified {modified}
           </Typography>
+          )}
           </Stack>
         </Stack>
       </Dialog>

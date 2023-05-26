@@ -147,7 +147,7 @@ export default function Home() {
       }
       );
     }
-  }, [navigate, setFilterNoteList, setNoteList, setTagList, user_id]);
+  }, []);
 
   return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
@@ -226,6 +226,7 @@ export default function Home() {
         setNoteList={setNoteList}
         filterNoteList={filterNoteList}
         setFilterNoteList={setFilterNoteList}  
+        filterNoteListRef={filterNoteListRef}
         titleValue={titleValue}
         setTitle={ setTitle}
         contentValue={ contentValue}
@@ -234,6 +235,7 @@ export default function Home() {
         idValueRef={idValueRef}
         created={created}
         modified={modified}
+        setModified={setModified}
         setId={ setId}
         noteTags={noteTags }
         setNoteTags={setNoteTags}

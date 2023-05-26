@@ -7,7 +7,7 @@ const User = require('../models/user.js');
 router.get('/all', async (req, res) => {
   try {
     const users = await User.find();
-    return res.status(200).json(users.at(0));
+    return res.status(200).json(users);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -15,17 +15,15 @@ router.get('/all', async (req, res) => {
 
 // Login user
 router.get('/', async (req, res) => {
-  // get email and password from body
-  // const authorizationHeader = req.headers.authorization;
-  // let email, password;
-  // if (authorizationHeader) {
-  //     const credentials = JSON.parse(authorizationHeader);
-  //     email = credentials.email;
-  //     password = credentials.password;
-  // }
+  //get email and password from body
+  const authorizationHeader = req.headers.authorization;
+  let email, password;
+  if (authorizationHeader) {
+      const credentials = JSON.parse(authorizationHeader);
+      email = credentials.email;
+      password = credentials.password;
+  }
   
-  let email = req.body.email;
-  let password = req.body.password;
   if (email == null) {
     return res.status(400).json({ message: "email is required" });
   }
@@ -38,11 +36,10 @@ router.get('/', async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "credentials are incorrect" });
     }
-    const passwordCorrect = user.comparePassword(password);
+    const passwordCorrect = await user.comparePassword(user.password, password);
     if (!passwordCorrect) {
-      return res.status(400).json({ message: "credentials are incorrect (p)" });
+      return res.status(400).json({ message: "credentials are incorrect" });
     }
-    console.log(passwordCorrect);
     // return user id
     return res.status(200).json(user._id);
   } catch (err) {
@@ -60,6 +57,7 @@ router.post('/', async (req, res) => {
     email = credentials.email;
     password = credentials.password;
   }
+  
   if (email == null) {
     return res.status(400).json({ message: "email is required" });
   }
@@ -88,21 +86,21 @@ router.post('/', async (req, res) => {
 });
 
 // Delete user
-// router.delete('/', async (req, res) => {
-//   // get email and password from body
-//   const email = req.body.email;
-//   // check that email is unique 
-//   try {
-//     const users = await User.find({ email: email });
-//     if (users.length == 0) {
-//       return res.status(400).json({ message: "email not found" });
-//     }
-//     await users.at(0).deleteOne();
-//     // return status
-//     return res.status(202).json("user deleted");
-//   } catch (err) {
-//     return res.status(500).json({ message: err.message });
-//   }
-// });
+router.delete('/', async (req, res) => {
+  // get email and password from body
+  const email = req.body.email;
+  // check that email is unique 
+  try {
+    const users = await User.find({ email: email });
+    if (users.length == 0) {
+      return res.status(400).json({ message: "email not found" });
+    }
+    await users.at(0).deleteOne();
+    // return status
+    return res.status(202).json("user deleted");
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router;

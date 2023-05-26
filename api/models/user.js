@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-import bcrypt from "bcrypt";
+const bcrypt = require('bcrypt');
 const SALT_WORK_FACTOR = 10;
 
 const tagSchema = new mongoose.Schema({
@@ -57,15 +57,14 @@ userSchema.pre('save', function (next) {
   if (!user.isModified('password')){
     return next();
   } 
-  
   const salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
-  const hash = bcrypt.hashSync(myPlaintextPassword, salt);
+  const hash = bcrypt.hashSync(user.password, salt);
   user.password = hash;
   next();
 });
 
-userSchema.methods.comparePassword = async (candidatePassword) => {
-  return await bcrypt.compare(candidatePassword, this.password);
+userSchema.methods.comparePassword = async (hash, candidatePassword) => {
+  return await bcrypt.compare(candidatePassword, hash);
 };
 
 module.exports = mongoose.model('user', userSchema);
