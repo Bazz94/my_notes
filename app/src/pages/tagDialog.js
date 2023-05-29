@@ -15,7 +15,7 @@ var oldTag;
 
 export default function TagDialog(
   { user_id, noteList, noteListRef, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
-    setOpenErrorDialog, setError }) {
+    setOpenErrorDialog, setError, setBackdrop }) {
 
 
 
@@ -40,6 +40,7 @@ export default function TagDialog(
       name: tagName,
     }
 
+    setBackdrop(true);
     await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
       method: 'POST',
       headers: {
@@ -57,7 +58,9 @@ export default function TagDialog(
         const newTagList = [...tagList, newTag]; 
         setTagList(newTagList);
         console.log('Tags updated');
+        setBackdrop(false);
       }).catch((err) => {
+        setBackdrop(false);
         setError(err.message);
         setOpenErrorDialog(true);
         return false;
@@ -95,6 +98,7 @@ export default function TagDialog(
           name: tag.name,
         }
         // set tagList in db
+        setBackdrop(true);
         await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
           method: 'PATCH',
           headers: {
@@ -108,19 +112,21 @@ export default function TagDialog(
             }
             setTagList([...tagList]);
             console.log('Tags updated');
+            setBackdrop(false);
           }).catch((err) => {
             // revert changes
             tag.name = oldTag.name;
             setTagList([...tagList]);
             setNoteList([...tempNoteList]);
             setError(err.message);
+            setBackdrop(false);
             setOpenErrorDialog(true);
             return false;
           }
         );
 
         // set noteList in db
-        await fetch(`${process.env.REACT_APP_API_URL}/notes/tags/${user_id}`, {
+        fetch(`${process.env.REACT_APP_API_URL}/notes/tags/${user_id}`, {
           method: 'PATCH',
           headers: {
             "Content-type": "application/json"
@@ -167,6 +173,7 @@ export default function TagDialog(
     const data = {
       id: tag._id,
     }
+    setBackdrop(true);
     await fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
       method: 'DELETE',
       headers: {
@@ -179,11 +186,13 @@ export default function TagDialog(
           throw Error(res.message);
         }
         setTagList(newList);
+        setBackdrop(false);
         console.log('Tag deleted');
       }).catch((err) => {
         // revet changes
         setTagList(tempTagList);
         setNoteList(tempNoteList);
+        setBackdrop(false);
         setError(err.message);
         setOpenErrorDialog(true);
         return false;
@@ -191,7 +200,7 @@ export default function TagDialog(
     );
     
     // set noteList in db
-    await fetch(`${process.env.REACT_APP_API_URL}/notes/tags/${user_id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/notes/tags/${user_id}`, {
       method: 'DELETE',
       headers: {
         "Content-type": "application/json"

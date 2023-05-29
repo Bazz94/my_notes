@@ -7,11 +7,12 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function NoteList({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
-   handleNoteClick, setOpenErrorDialog, setError }) {
+  handleNoteClick, setOpenErrorDialog, setError, setBackdrop }) {
 
   async function handleNoteDelete(id) {
     const data = { note_id: id };
 
+    setBackdrop(true);
     await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
       method: 'DELETE',
       headers: {
@@ -28,7 +29,9 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
         setNoteList(newList);
         setFilterNoteList(newFilterList);
         console.log('Note deleted');
+        setBackdrop(false);
       }).catch((err) => {
+        setBackdrop(false);
         setError(err.message);
         setOpenErrorDialog(true);
         return false;

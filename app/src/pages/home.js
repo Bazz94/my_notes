@@ -17,13 +17,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import Button from '@mui/material/Button';
 import Cookies from 'js-cookie';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 export default function Home() {
   const navigate = useNavigate();
+  const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
 
   const [isLoadingN, setIsLoadingN] = useState(true);
   const [isLoadingT, setIsLoadingT] = useState(true);
+  const [backdrop, setBackdrop] = useState(false);
   const [error, setError] = useState(null);
 
 
@@ -149,22 +153,23 @@ export default function Home() {
     }
   }, []);
 
+  console.log(isDesktopView);
   return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
-          width: 'clamp(350px,80%,60rem)', 
+          width: isDesktopView ? 'clamp(500px,80%,60rem)' : 'clamp(350px, 95%, 60rem)', 
           minHeight: '100vh', // weird
-          padding: '1rem',
+          padding: isDesktopView ? '1rem' : '0.1rem',
         }}>
-        <Box>
+        <Box sx={{ height: isDesktopView ? '' : 'clamp(10%, 35vh, 35hv'}}>
           <Box sx={{
             position: 'relative',
-            top: '4.9rem',
+            top: isDesktopView ? '4.9rem' : '3rem',
             left: '0rem',
           }}>
             <Fab size="small" 
               aria-label="edit" 
-              sx={{marginRight: '10px'}}
+            sx={{ marginRight: isDesktopView ? '10px' : '1px'}}
               onClick={() => setShowLogOut(!showLogOutRef.current)}
               >
               <SettingsIcon />
@@ -180,13 +185,17 @@ export default function Home() {
           </Box>
           <Typography 
             variant="h1" 
-            sx={{margin: '1rem', textAlign: 'center'}}>
-            My Notes
+            sx={{ 
+              margin: isDesktopView ? '2rem' : '1rem 2rem', 
+              textAlign: 'center', 
+              bottom: isDesktopView ? '' : '2rem', 
+              position: isDesktopView ? '' : 'relative' }}>
+              My Notes 
           </Typography>
         </Box>
         <Stack 
           direction="row" 
-          spacing={2} 
+        spacing={isDesktopView ? 2 : 1} 
           sx={{ minHeight: '58.2vh'}}>
           <Box 
             sx={{ width: '20%' }}>
@@ -213,6 +222,7 @@ export default function Home() {
             handleNoteClick={handleNoteClick}
             setOpenErrorDialog={setOpenErrorDialog}
             setError={setError}
+            setBackdrop={setBackdrop}
             />
           </Box>
         </Stack>
@@ -242,6 +252,8 @@ export default function Home() {
         noteTagsRef={noteTagsRef}
         setOpenErrorDialog={setOpenErrorDialog}
         setError={setError}
+        setBackdrop={setBackdrop}
+        isDesktopView={isDesktopView}
       />
       <TagDialog 
         user_id={user_id}
@@ -257,6 +269,7 @@ export default function Home() {
         setTagName={setTagName}
         setOpenErrorDialog={setOpenErrorDialog}
         setError={setError}
+        setBackdrop={setBackdrop}
       />
       <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
         <DialogContent>
@@ -268,6 +281,12 @@ export default function Home() {
           <Button onClick={handleErrorDialogOk}>Ok</Button>
         </DialogActions>
       </Dialog>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.snackbar}}
+        open={backdrop}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       </Container>
   )
 }

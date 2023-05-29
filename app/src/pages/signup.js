@@ -10,9 +10,11 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LoadingComponent from '../components/loading.js';
 import Cookies from 'js-cookie';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 export default function Login() {
   const navigate = useNavigate();
+  const isDesktopView = useMediaQuery('(min-width:600px)');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,11 +92,11 @@ export default function Login() {
         width: 'clamp(350px,60%,40rem)',
         minHeight: '100vh', // weird
         padding: '1rem',
-        paddingTop: '10%'
+        paddingTop: isDesktopView ? '10%' : '0px'
       }}>
       <Typography
         variant="h1"
-        sx={{ margin: '4rem', textAlign: 'center' }} >
+        sx={{ margin: isDesktopView ? '4rem' : '2rem', textAlign: 'center' }} >
         My Notes
       </Typography>
       <Stack
