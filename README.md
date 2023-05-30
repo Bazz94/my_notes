@@ -1,6 +1,6 @@
 # myNotes
 ### Description
-A note taking app, with labels and user accounts.
+A note taking app, with labels and user accounts. Frontend made with React and MUI, and backend with Node and Express.
 
 ### Images
 <p float="left">
