@@ -22,6 +22,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 
 export default function Home() {
+  
   const navigate = useNavigate();
   const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
 
@@ -108,7 +109,9 @@ export default function Home() {
       }).then((data) => {
         setTagList(data);
         setIsLoadingT(false);
-        console.log('Fetched tags for home page');
+        if (process.env.REACT_APP_DEV_MODE === true) {
+          console.log('Fetched tags for home page');
+        }
         // Get notes
         fetch(`${process.env.REACT_APP_API_URL}/notes/${user_idRef.current}`)
         .then((res) => {
@@ -131,7 +134,9 @@ export default function Home() {
             setFilterNoteList(tempList);
           }
           setIsLoadingN(false);
-          console.log('Fetched user notes for home page');
+          if (process.env.REACT_APP_DEV_MODE === true) {
+            console.log('Fetched user notes for home page');
+          }
         }).catch((err2) => {
           setIsLoadingT(false);
           setIsLoadingN(false);
@@ -153,7 +158,6 @@ export default function Home() {
     }
   }, []);
 
-  console.log(isDesktopView);
   return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 

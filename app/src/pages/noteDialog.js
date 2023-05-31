@@ -76,7 +76,9 @@ export default function NoteDialog({
               setNoteList([...noteListRef.current]);
               setFilterNoteList([...filterNoteListRef.current]);
               setBackdrop(false);
-              console.log('Notes updated');
+              if (process.env.REACT_APP_DEV_MODE === true) {
+                console.log('Notes updated');
+              }
             }).catch((err) => {
               setBackdrop(false);
               setError(err.message);
@@ -130,7 +132,9 @@ export default function NoteDialog({
           setNoteList(newNoteList);
           setFilterNoteList(newFilterNote);
           setBackdrop(false);
-          console.log('Notes created');
+          if (process.env.REACT_APP_DEV_MODE === true) {
+            console.log('Notes created');
+          }
         }).catch((err) => {
           setBackdrop(false);
           setError(err.message);
@@ -141,7 +145,6 @@ export default function NoteDialog({
     }
 
     // Clean up 
-    console.log('Note Submitted');
     setInputError(false);
     setTitle('');
     setContent('');

@@ -57,7 +57,9 @@ export default function TagDialog(
         const newTag = { _id: data, name: tagName, editing: false, selected: false };
         const newTagList = [...tagList, newTag]; 
         setTagList(newTagList);
-        console.log('Tags updated');
+        if (process.env.REACT_APP_DEV_MODE === true) {
+          console.log('Tags updated');
+        }
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
@@ -111,7 +113,9 @@ export default function TagDialog(
               throw Error(res.message);
             }
             setTagList([...tagList]);
-            console.log('Tags updated');
+            if (process.env.REACT_APP_DEV_MODE === true) {
+              console.log('Tags updated');
+            }
             setBackdrop(false);
           }).catch((err) => {
             // revert changes
@@ -138,7 +142,11 @@ export default function TagDialog(
               throw Error(res.message);
             }
             setNoteList([...noteList]);
-            console.log('Notes updated');
+            if (process.env.REACT_APP_DEV_MODE === true) {
+              if (process.env.REACT_APP_DEV_MODE === true) {
+                console.log('Notes updated');
+              }
+            }
           }).catch((err) => {
             // revert changes
             tag.name = oldTag.name;
@@ -212,7 +220,9 @@ export default function TagDialog(
           throw Error(res.message);
         }
         setNoteList([...noteList]);
-        console.log('Notes updated');
+        if (process.env.REACT_APP_DEV_MODE === true) {
+          console.log('Notes updated');
+        }
       }).catch((err) => {
         // revert changes
         setTagList(tempTagList);

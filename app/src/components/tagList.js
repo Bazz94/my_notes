@@ -46,7 +46,9 @@ export default function tagList({
     })
       .then((res) => {
         if (res.ok) {
-          console.log('Tag selection updated');
+          if (process.env.REACT_APP_DEV_MODE === true) {
+            console.log('Tag selection updated');
+          }
         }
       }
     );

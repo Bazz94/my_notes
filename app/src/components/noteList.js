@@ -28,7 +28,9 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
         const newFilterList = filterNoteList.filter(note => note._id !== id);
         setNoteList(newList);
         setFilterNoteList(newFilterList);
-        console.log('Note deleted');
+        if(process.env.REACT_APP_DEV_MODE){
+          console.log('Note deleted');
+        }
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
