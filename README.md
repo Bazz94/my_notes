@@ -1,6 +1,8 @@
 # myNotes
 ### Description
-A note taking app, with labels and user accounts. Frontend made with React and MUI, and backend with Node and Express.
+An app that provides a simple and intuitive interface for taking and organizing notes. 
+It allows users to create and manage their own personal collection of notes, with the 
+ability to label and filter them based on their labels. Created with the MERN stack.
 
 ### Images
 <p float="left">
