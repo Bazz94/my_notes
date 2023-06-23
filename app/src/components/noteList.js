@@ -5,9 +5,10 @@ import Card from '@mui/material/Card';
 import { CardActionArea } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { memo } from 'react';
 
-export default function NoteList({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
-  handleNoteClick, setOpenErrorDialog, setError, setBackdrop }) {
+export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
+  handleNoteClick, setOpenErrorDialog, error, setBackdrop }) {
 
   async function handleNoteDelete(id) {
     const data = { note_id: id };
@@ -34,7 +35,7 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
@@ -61,4 +62,5 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
         </Card>
       ))}
     </Stack>
-);}
+  );
+});

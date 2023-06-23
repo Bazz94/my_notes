@@ -9,15 +9,14 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
+import { memo } from 'react';
 
 
 var oldTag;
 
-export default function TagDialog(
-  { user_id, noteList, noteListRef, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
-    setOpenErrorDialog, setError, setBackdrop }) {
-
-
+export const TagDialog = memo(function TagDialog(
+  { user_id, noteList, setNoteList, tagOpen, setTagOpen, tagList, setTagList, tagName, setTagName,
+    setOpenErrorDialog, error, setBackdrop }) {
 
   function handleClose() {
     setTagOpen(false);
@@ -29,7 +28,7 @@ export default function TagDialog(
       return false;
     }
     if (tagList.find(item => item.name === tagName) != null) {
-      setError('Tag already exists');
+      error.current = 'Tag already exists';
       setOpenErrorDialog(true);
       setTagName('');
       return false;
@@ -57,13 +56,13 @@ export default function TagDialog(
         const newTag = { _id: data, name: tagName, editing: false, selected: false };
         const newTagList = [...tagList, newTag]; 
         setTagList(newTagList);
-        if (process.env.REACT_APP_DEV_MODE === true) {
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
           console.log('Tags updated');
         }
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
@@ -113,7 +112,7 @@ export default function TagDialog(
               throw Error(res.message);
             }
             setTagList([...tagList]);
-            if (process.env.REACT_APP_DEV_MODE === true) {
+            if (process.env.REACT_APP_DEV_MODE === 'true') {
               console.log('Tags updated');
             }
             setBackdrop(false);
@@ -122,7 +121,7 @@ export default function TagDialog(
             tag.name = oldTag.name;
             setTagList([...tagList]);
             setNoteList([...tempNoteList]);
-            setError(err.message);
+            error.current = err.message;
             setBackdrop(false);
             setOpenErrorDialog(true);
             return false;
@@ -142,8 +141,8 @@ export default function TagDialog(
               throw Error(res.message);
             }
             setNoteList([...noteList]);
-            if (process.env.REACT_APP_DEV_MODE === true) {
-              if (process.env.REACT_APP_DEV_MODE === true) {
+            if (process.env.REACT_APP_DEV_MODE === 'true') {
+              if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Notes updated');
               }
             }
@@ -152,7 +151,7 @@ export default function TagDialog(
             tag.name = oldTag.name;
             setTagList([...tagList]);
             setNoteList([...tempNoteList]);
-            setError(err.message);
+            error.current = err.message;
             setOpenErrorDialog(true);
             return false;
           }
@@ -201,7 +200,7 @@ export default function TagDialog(
         setTagList(tempTagList);
         setNoteList(tempNoteList);
         setBackdrop(false);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
@@ -220,14 +219,14 @@ export default function TagDialog(
           throw Error(res.message);
         }
         setNoteList([...noteList]);
-        if (process.env.REACT_APP_DEV_MODE === true) {
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
           console.log('Notes updated');
         }
       }).catch((err) => {
         // revert changes
         setTagList(tempTagList);
         setNoteList(tempNoteList);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
@@ -293,4 +292,4 @@ export default function TagDialog(
       </Dialog>
     </div>
   );
-}
+});
