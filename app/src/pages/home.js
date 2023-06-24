@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Typography, Container } from "@mui/material";
-import { useEffect, useRef } from 'react';
-import useState from 'react-usestateref';
+import { useEffect, useRef, useState, memo } from 'react';
 import { NoteListComponent } from '../components/noteList.js';
 import { TagListComponent } from '../components/tagList.js';
 import Box from '@mui/material/Box';
@@ -19,19 +18,32 @@ import Button from '@mui/material/Button';
 import Cookies from 'js-cookie';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
-import useNoteListReducer from '../reducers/noteListReducer.js';
 import useNoteDialogControllerReducer from '../reducers/noteDialogControllerReducer.js';
 
-export default function Home() {
-  
+export const Home = memo(function Home() {
   console.log('render');
-
+  const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
   const user_id = useRef(null);
-  const [isLoadingN, setIsLoadingN] = useState(true);
-  const [isLoadingT, setIsLoadingT] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [backdrop, setBackdrop] = useState(false);
   const error = useRef(null);
+  const redirect = useRef(false);
   const navigate = useNavigate();
+  const [showLogOut, setShowLogOut] = useState(false);
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
+
+  function handleLogOut() {
+    Cookies.remove('user-id');
+    navigate('/login');
+  }
+
+  function handleErrorDialogOk() {
+    setOpenErrorDialog(false);
+    if (redirect) {
+      Cookies.remove('user-id');
+      navigate("/login");
+    }
+  }
 
   // useEffect
   useEffect(() => {
@@ -40,16 +52,15 @@ export default function Home() {
     if (user_id.current == null) {
       navigate("/login");
     } else {
-      // Get data
+      // Get tags
       fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id.current}`)
         .then((res) => {
           if (!res.ok) {
             throw Error("Server error");
           }
           return res.json();
-        }).then((data) => {
-          setTagList(data);
-          setIsLoadingT(false);
+        }).then((tagListData) => {
+          setTagList(tagListData);
           if (process.env.REACT_APP_DEV_MODE === 'true') {
             console.log('Fetched tags for home page');
           }
@@ -60,36 +71,34 @@ export default function Home() {
                 throw Error("Server error");
               }
               return res.json();
-            }).then((data2) => {
-              setNoteList(data2);
-              const selectedTag = data.find((item) => item.selected === true);
+            }).then((noteListData) => {
+              setNoteList(noteListData);
+              const selectedTag = tagListData.find((item) => item.selected === true);
               if (selectedTag == null) {
-                setFilterNoteList(data2);
+                setFilterNoteList(noteListData);
               } else {
                 let tempList = [];
-                for (let note of data2) {
+                for (let note of noteListData) {
                   if (note.tags.find((item) => item._id === selectedTag._id) != null) {
                     tempList.push(note);
                   }
                 }
                 setFilterNoteList(tempList);
               }
-              setIsLoadingN(false);
+              setIsLoading(false);
               if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Fetched user notes for home page');
               }
             }).catch((err2) => {
-              setIsLoadingT(false);
-              setIsLoadingN(false);
+              setIsLoading(false);
               redirect.current = true;
               error.current = err2.message;
               setOpenErrorDialog(true);
               return false;
-            }
-            );
+            });
+
         }).catch((err) => {
-          setIsLoadingT(false);
-          setIsLoadingN(false);
+          setIsLoading(false);
           redirect.current = true;
           error.current = err.message;
           setOpenErrorDialog(true);
@@ -97,87 +106,23 @@ export default function Home() {
         }
         );
     }
-  }, []);
-
-  
-  const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
-
+  }, [navigate]);
 
   // NoteListComponent methods
-  const [noteList, setNoteList, noteListRef] = useState([]);
-  const [filterNoteList, setFilterNoteList, filterNoteListRef] = useState([]);
-  const redirect = useRef(false);
-
-  const [noteDialogController, noteDialogDispatch] = useNoteDialogControllerReducer();
-
-  // reducer temp
-  // const ACTIONS = {
-  //   ADD: 'add',
-  //   EDIT: 'edit',
-  //   DELETE: 'delete',
-  // }
-
-  // const [list, ListDispatch] = useNoteListReducer();
-  // console.log(list);
-
-  // reducer temp
-    // ListDispatch({
-    //   type: ACTIONS.ADD,
-    //   id: '1212',
-    //   title: 'title',
-    //   content: 'content',
-    //   tags: [],
-    //   modified: ''
-    // });
-    
-  function handleNoteClick(note) {
-    const timeFormat = {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit'
-    };
-    const formatModified = new Date(note.modified).toLocaleDateString('en-GB', timeFormat);
-    setNoteOpen(true);
-    noteDialogDispatch({
-      type: 'set',
-      id: note._id,
-      title: note.title,
-      content: note.content,
-      modified: formatModified
-    });
-  }
+  const [noteList, setNoteList] = useState([]);
+  const [filterNoteList, setFilterNoteList] = useState([]);
 
   // NoteDialogComponent methods
-  const [openNote, setNoteOpen] = useState(false);
+  const [noteDialogController, noteDialogDispatch] = useNoteDialogControllerReducer();
   
   // TagListComponentComponent methods
   const [tagList, setTagList] = useState([]);
   
   // TagDialogComponent methods
-  const [tagOpen, setTagOpen] = useState(false);
+  const [openTagDialog, setOpenTagDialog] = useState(false);
   const [tagName, setTagName] = useState('');
 
-  const [showLogOut, setShowLogOut, showLogOutRef] = useState(false);
-
-  const handleLogOut = () => {
-    Cookies.remove('user-id');
-    navigate('/login');
-  }
-
-  const [openErrorDialog, setOpenErrorDialog] = useState(false);
-
-
-  function handleErrorDialogOk() {
-    setOpenErrorDialog(false);
-    if (redirect) {
-      Cookies.remove('user-id');
-      navigate("/login");
-    }
-  }
-
-  
-
-  return isLoadingN || isLoadingT ? (<LoadingComponent/>) : (
+  return isLoading ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
         sx={{ 
           width: isDesktopView ? 'clamp(500px,80%,60rem)' : 'clamp(350px, 95%, 60rem)', 
@@ -193,7 +138,7 @@ export default function Home() {
             <Fab size="small" 
               aria-label="edit" 
             sx={{ marginRight: isDesktopView ? '10px' : '1px'}}
-              onClick={() => setShowLogOut(!showLogOutRef.current)}
+              onClick={() => setShowLogOut(!showLogOut)}
               >
               <SettingsIcon />
             </Fab>
@@ -227,8 +172,8 @@ export default function Home() {
             tagList={tagList} 
             setTagList={setTagList}
             noteList={noteList}
-            setNoteOpen={setNoteOpen} 
-            setTagOpen={setTagOpen}
+            noteDialogDispatch={noteDialogDispatch} 
+            setOpenTagDialog={setOpenTagDialog}
             setFilterNoteList={setFilterNoteList}
             />
           </Box>
@@ -240,7 +185,7 @@ export default function Home() {
             setNoteList={setNoteList}
             filterNoteList={filterNoteList}
             setFilterNoteList={setFilterNoteList}  
-            handleNoteClick={handleNoteClick}
+            noteDialogDispatch={noteDialogDispatch}
             setOpenErrorDialog={setOpenErrorDialog}
             error={error}
             setBackdrop={setBackdrop}
@@ -249,15 +194,11 @@ export default function Home() {
         </Stack>
       <NoteDialog 
         user_id={user_id.current}
-        openNote={openNote} 
-        setNoteOpen={setNoteOpen}
         tagList={tagList}
         noteList={noteList}
-        noteListRef={noteListRef}
         setNoteList={setNoteList}
         filterNoteList={filterNoteList}
         setFilterNoteList={setFilterNoteList}  
-        filterNoteListRef={filterNoteListRef}
         noteDialogController={noteDialogController}
         noteDialogDispatch={noteDialogDispatch}
         setOpenErrorDialog={setOpenErrorDialog}
@@ -269,8 +210,8 @@ export default function Home() {
         user_id={user_id.current}
         noteList={noteList}
         setNoteList={setNoteList}
-        tagOpen={tagOpen}
-        setTagOpen={setTagOpen}s
+        openTagDialog={openTagDialog}
+        setOpenTagDialog={setOpenTagDialog}s
         tagList={tagList}
         setTagList={setTagList}
         tagName={tagName}
@@ -297,4 +238,4 @@ export default function Home() {
       </Backdrop>
       </Container>
   )
-}
+});

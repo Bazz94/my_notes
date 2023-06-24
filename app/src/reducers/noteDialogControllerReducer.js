@@ -1,16 +1,12 @@
 import { useReducer } from "react";
 
-const ACTIONS = {
-  SET: 'set',
-  CLEAR: 'clear'
-}
-
 const initObj = {
   id: null,
   title: '',
   content: '',
   tags: [],
-  modified: null
+  modified: null,
+  open: false
 };
 
 function reducer(state, action) {

@@ -7,8 +7,29 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { memo } from 'react';
 
-export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
-  handleNoteClick, setOpenErrorDialog, error, setBackdrop }) {
+export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, setNoteList, filterNoteList,
+  setFilterNoteList, noteDialogDispatch, setOpenErrorDialog, error, setBackdrop }) {
+
+  function handleNoteClick(note) {
+    const timeFormat = {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    };
+    const formatModified = new Date(note.modified).toLocaleDateString('en-GB', timeFormat);
+    noteDialogDispatch({
+      type: 'set',
+      open: true
+    });
+    noteDialogDispatch({
+      type: 'set',
+      id: note._id,
+      title: note.title,
+      content: note.content,
+      tags: note.tags,
+      modified: formatModified,
+    });
+  }
 
   async function handleNoteDelete(id) {
     const data = { note_id: id };

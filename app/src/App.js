@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Home from './pages/home.js';
+import { Home } from './pages/home.js';
 import Login from './pages/login.js';
 import SignUp from './pages/signup.js';
 import { createTheme, ThemeProvider } from '@mui/material/styles';

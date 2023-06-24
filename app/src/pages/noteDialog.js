@@ -12,8 +12,8 @@ import { Box } from '@mui/material';
 
 
 export const NoteDialog = memo(function NoteDialog({ 
-  user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, filterNoteList, 
-  setFilterNoteList, filterNoteListRef, noteDialogController, noteDialogDispatch, setOpenErrorDialog, 
+  user_id, tagList, noteList, setNoteList, filterNoteList, 
+  setFilterNoteList, noteDialogController, noteDialogDispatch, setOpenErrorDialog, 
   error, setBackdrop, isDesktopView }) {
 
   const [inputError, setInputError] = useState(false);
@@ -22,8 +22,6 @@ export const NoteDialog = memo(function NoteDialog({
     noteDialogDispatch({
       type: 'clear',
     });
-
-    setNoteOpen(false);
   }; 
 
   async function handleNoteOk() {
@@ -39,7 +37,7 @@ export const NoteDialog = memo(function NoteDialog({
         || note.content !== noteDialogController.content
         || note.tags !== noteDialogController.tags
       ) {
-        let data = {
+        const data = {
           note_id: noteDialogController.id,
           title: noteDialogController.title,
           content: noteDialogController.content,
@@ -61,18 +59,32 @@ export const NoteDialog = memo(function NoteDialog({
               }
               
               return res.json();
-            }).then((data) => {
-              note.title = noteDialogController.title;
-              note.content = noteDialogController.content;
-              note.tags = noteDialogController.tags;
-              note.modified = data;
-              const filterNote = filterNoteList.find(note => note._id === noteDialogController.id);
-              filterNote.title = noteDialogController.title;
-              filterNote.content = noteDialogController.content;
-              filterNote.tags = noteDialogController.tags;
-              filterNote.modified = data;
-              setNoteList([...noteListRef.current]);
-              setFilterNoteList([...filterNoteListRef.current]);
+            }).then((modifiedDate) => {
+              const editedNote = {
+                _id: noteDialogController.id,
+                title: noteDialogController.title,
+                content: noteDialogController.content,
+                tags: noteDialogController.tags,
+                modified: modifiedDate,
+                created: note.created
+              };
+              const editedNoteList = noteList.map(item => {
+                if (item._id === editedNote._id) {
+                  return editedNote;
+                } else {
+                  return item;
+                }
+              });
+              setNoteList([...editedNoteList]);
+
+              const editedFilterNoteList = filterNoteList.map(item => {
+                if (item._id === editedNote._id) {
+                  return editedNote;
+                } else {
+                  return item;
+                }
+              });
+              setFilterNoteList([...editedFilterNoteList]);
               setBackdrop(false);
               if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Notes updated');
@@ -150,7 +162,6 @@ export const NoteDialog = memo(function NoteDialog({
       type: 'clear'
     });
     setInputError(false);
-    setNoteOpen(false);
   }
 
   function handleClickTag(tag) {
@@ -169,7 +180,7 @@ export const NoteDialog = memo(function NoteDialog({
   }
 
   return (
-    <Dialog open={openNote} maxWidth='md' fullWidth={true}>
+    <Dialog open={noteDialogController.open} maxWidth='md' fullWidth={true}>
       <DialogContent sx={{padding: isDesktopView ? '' : '0.2rem 0.6rem'}}>
         <TextField
           autoFocus

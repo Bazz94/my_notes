@@ -15,11 +15,11 @@ import { memo } from 'react';
 var oldTag;
 
 export const TagDialog = memo(function TagDialog(
-  { user_id, noteList, setNoteList, tagOpen, setTagOpen, tagList, setTagList, tagName, setTagName,
+  { user_id, noteList, setNoteList, openTagDialog, setOpenTagDialog, tagList, setTagList, tagName, setTagName,
     setOpenErrorDialog, error, setBackdrop }) {
 
   function handleClose() {
-    setTagOpen(false);
+    setOpenTagDialog(false);
     setTagName('');
   }
 
@@ -238,7 +238,7 @@ export const TagDialog = memo(function TagDialog(
 
   return (
     <div>
-      <Dialog open={tagOpen} maxWidth='xs' fullWidth={true}>
+      <Dialog open={openTagDialog} maxWidth='xs' fullWidth={true}>
         <DialogTitle>Tags</DialogTitle>
         <DialogContent>
           <Stack>

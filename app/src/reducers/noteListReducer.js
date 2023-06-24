@@ -1,11 +1,5 @@
 import { useReducer } from "react";
 
-const ACTIONS = {
-  ADD: 'add',
-  EDIT: 'edit',
-  DELETE: 'delete',
-}
-
 // action.id
 // action.title
 // action.content
@@ -14,7 +8,7 @@ const ACTIONS = {
 
 function reducer(list, action) {
   switch (action.type) {
-    case ACTIONS.ADD: {
+    case 'add': {
       return [...list, {
         _id: action.id,
         title: action.title,
@@ -23,7 +17,7 @@ function reducer(list, action) {
         modified: action.modified,
       }];
     }
-    case ACTIONS.EDIT: {
+    case 'edit': {
       return list.map(item => {
         if (item._id === action.task.id) {
           return action.task;
@@ -32,7 +26,7 @@ function reducer(list, action) {
         }
       });
     }
-    case ACTIONS.DELETE: {
+    case 'delete': {
       return list.filter(item => item._id !== action.id);
     }
     default: {

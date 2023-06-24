@@ -8,14 +8,17 @@ import { Divider } from '@mui/material';
 import { memo } from 'react';
 
 export const TagListComponent = memo(function TagListComponent({ 
-  user_id, tagList, setTagList, noteList, setNoteOpen, setTagOpen, setFilterNoteList}) {
+  user_id, tagList, setTagList, noteList, noteDialogDispatch, setOpenTagDialog, setFilterNoteList}) {
 
   function handleAddNote() {
-    setNoteOpen(true);
+    noteDialogDispatch({
+      type: 'set',
+      open:true
+    });
   }
 
   function handleEditTags() {
-    setTagOpen(true);
+    setOpenTagDialog(true);
   }
 
   async function handleTag(tag) {
