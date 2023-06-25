@@ -97,7 +97,6 @@ function filterNotesList(_tagList, _noteList) {
     visibleNotes = _noteList;
     return visibleNotes;
   }
-  console.log(_noteList);
   _noteList.forEach((note) => {
     if (note.tags.find(item => item._id === selectedTag._id) != null) {
       if (visibleNotes.find(item => item._id === note._id) == null) {
