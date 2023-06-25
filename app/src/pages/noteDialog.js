@@ -12,9 +12,8 @@ import { Box } from '@mui/material';
 
 
 export const NoteDialog = memo(function NoteDialog({ 
-  user_id, tagList, noteList, setNoteList, filterNoteList, 
-  setFilterNoteList, noteDialogController, noteDialogDispatch, setOpenErrorDialog, 
-  error, setBackdrop, isDesktopView }) {
+  user_id, tagList, noteList, noteListDispatch, noteDialogController, 
+  noteDialogDispatch, setOpenErrorDialog, error, setBackdrop, isDesktopView }) {
 
   const [inputError, setInputError] = useState(false);
 
@@ -25,7 +24,6 @@ export const NoteDialog = memo(function NoteDialog({
   }; 
 
   async function handleNoteOk() {
-
     if (noteDialogController.title === '') {
       setInputError(true);
       return false;
@@ -60,31 +58,15 @@ export const NoteDialog = memo(function NoteDialog({
               
               return res.json();
             }).then((modifiedDate) => {
-              const editedNote = {
+              noteListDispatch({
+                type: 'edit',
                 _id: noteDialogController.id,
                 title: noteDialogController.title,
                 content: noteDialogController.content,
                 tags: noteDialogController.tags,
                 modified: modifiedDate,
                 created: note.created
-              };
-              const editedNoteList = noteList.map(item => {
-                if (item._id === editedNote._id) {
-                  return editedNote;
-                } else {
-                  return item;
-                }
               });
-              setNoteList([...editedNoteList]);
-
-              const editedFilterNoteList = filterNoteList.map(item => {
-                if (item._id === editedNote._id) {
-                  return editedNote;
-                } else {
-                  return item;
-                }
-              });
-              setFilterNoteList([...editedFilterNoteList]);
               setBackdrop(false);
               if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Notes updated');
@@ -121,29 +103,15 @@ export const NoteDialog = memo(function NoteDialog({
           }
           return res.json();
         }).then((data) => {
-          const newNote = { 
-            _id: data._id, 
-            title: noteDialogController.title, 
-            content: noteDialogController.content, 
-            tags: noteDialogController.tags, 
-            modified: data.modified
-          };
-          noteDialogDispatch({
-            type: 'set',
-            id: data._id,
+          noteListDispatch({
+            type: 'add',
+            _id: data._id,
+            title: noteDialogController.title,
+            content: noteDialogController.content,
+            tags: noteDialogController.tags,
+            modified: data.modified,
+            created: data.created
           });
-          const newNoteList = [newNote, ...noteList]
-          // Check to see if note can be displayed on filterNoteList
-          const selectedTag = tagList.find((item) => item.selected === true);
-          let newFilterNote = [];
-          if (selectedTag == null) {
-            newFilterNote = [newNote, ...filterNoteList];
-          } 
-          if (noteDialogController.tags.includes(selectedTag)){
-            newFilterNote = [newNote, ...filterNoteList];
-          }
-          setNoteList(newNoteList);
-          setFilterNoteList(newFilterNote);
           setBackdrop(false);
           if (process.env.REACT_APP_DEV_MODE === 'true') {
             console.log('Notes created');

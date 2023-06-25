@@ -15,28 +15,32 @@ import { memo } from 'react';
 var oldTag;
 
 export const TagDialog = memo(function TagDialog(
-  { user_id, noteList, setNoteList, openTagDialog, setOpenTagDialog, tagList, setTagList, tagName, setTagName,
-    setOpenErrorDialog, error, setBackdrop }) {
+  { user_id, noteList, noteListDispatch,  tagList, setTagList,
+    setOpenErrorDialog, error, setBackdrop, tagDialogController, tagDialogDispatch}) {
 
   function handleClose() {
-    setOpenTagDialog(false);
-    setTagName('');
+    tagDialogDispatch({
+      type: 'clear'
+    });
   }
 
   async function handelNewTag() {
-    if (tagName.length < 1) {
+    if (tagDialogController.name.length < 1) {
       return false;
     }
-    if (tagList.find(item => item.name === tagName) != null) {
+    if (tagList.find(item => item.name === tagDialogController.name) != null) {
       error.current = 'Tag already exists';
       setOpenErrorDialog(true);
-      setTagName('');
+      tagDialogDispatch({
+        type: 'set',
+        name: ''
+      });
       return false;
     }
 
     // create in db
     const data = {
-      name: tagName,
+      name: tagDialogController.name,
     }
 
     setBackdrop(true);
@@ -53,9 +57,8 @@ export const TagDialog = memo(function TagDialog(
         }
         return res.json();
       }).then((data) => {
-        const newTag = { _id: data, name: tagName, editing: false, selected: false };
-        const newTagList = [...tagList, newTag]; 
-        setTagList(newTagList);
+        const newTag = { _id: data, name: tagDialogController.name, editing: false, selected: false };
+        setTagList([...tagList, newTag]);
         if (process.env.REACT_APP_DEV_MODE === 'true') {
           console.log('Tags updated');
         }
@@ -67,7 +70,10 @@ export const TagDialog = memo(function TagDialog(
         return false;
       }
     );
-    setTagName('');
+    tagDialogDispatch({
+      type: 'set',
+      name: ''
+    });
   }
 
   
@@ -87,12 +93,18 @@ export const TagDialog = memo(function TagDialog(
       const tempNoteList = noteList;
       tag.editing = false;
       if  (oldTag.name !== tag.name) {
-        noteList.forEach((note) => {
+        const newNoteList = noteList.map((note) => {
           const noteTag = note.tags.find(item => item._id === tag._id); 
-          if (noteTag != null) {
-            noteEditLog.push({ note_id: note._id, tag_id: tag._id, name: tag.name });
-            noteTag.name = tag.name;
+          if (noteTag == null) {
+            return note;
           }
+          noteEditLog.push({ note_id: note._id, tag_id: tag._id, name: tag.name });
+          noteTag.name = tag.name;
+          return note;
+        });
+        noteListDispatch({
+          type: 'set',
+          list: newNoteList
         });
         const data = {
           id: tag._id,
@@ -120,7 +132,10 @@ export const TagDialog = memo(function TagDialog(
             // revert changes
             tag.name = oldTag.name;
             setTagList([...tagList]);
-            setNoteList([...tempNoteList]);
+            noteListDispatch({
+              type: 'set',
+              list: tempNoteList
+            });
             error.current = err.message;
             setBackdrop(false);
             setOpenErrorDialog(true);
@@ -140,7 +155,6 @@ export const TagDialog = memo(function TagDialog(
             if (!res.ok) {
               throw Error(res.message);
             }
-            setNoteList([...noteList]);
             if (process.env.REACT_APP_DEV_MODE === 'true') {
               if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Notes updated');
@@ -150,7 +164,10 @@ export const TagDialog = memo(function TagDialog(
             // revert changes
             tag.name = oldTag.name;
             setTagList([...tagList]);
-            setNoteList([...tempNoteList]);
+            noteListDispatch({
+              type: 'set',
+              list: tempNoteList
+            });
             error.current = err.message;
             setOpenErrorDialog(true);
             return false;
@@ -198,7 +215,10 @@ export const TagDialog = memo(function TagDialog(
       }).catch((err) => {
         // revet changes
         setTagList(tempTagList);
-        setNoteList(tempNoteList);
+        noteListDispatch({
+          type: 'set',
+          list: tempNoteList
+        });
         setBackdrop(false);
         error.current = err.message;
         setOpenErrorDialog(true);
@@ -218,27 +238,36 @@ export const TagDialog = memo(function TagDialog(
         if (!res.ok) {
           throw Error(res.message);
         }
-        setNoteList([...noteList]);
+        noteListDispatch({
+          type: 'set',
+          list: noteList
+        });
         if (process.env.REACT_APP_DEV_MODE === 'true') {
           console.log('Notes updated');
         }
       }).catch((err) => {
         // revert changes
         setTagList(tempTagList);
-        setNoteList(tempNoteList);
+        noteListDispatch({
+          type: 'set',
+          list: tempNoteList
+        });
         error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
     );
 
-    setTagName('');
+    tagDialogDispatch({
+      type: 'set',
+      name: ''
+    });
   }
 
 
   return (
     <div>
-      <Dialog open={openTagDialog} maxWidth='xs' fullWidth={true}>
+      <Dialog open={tagDialogController.open} maxWidth='xs' fullWidth={true}>
         <DialogTitle>Tags</DialogTitle>
         <DialogContent>
           <Stack>
@@ -254,8 +283,8 @@ export const TagDialog = memo(function TagDialog(
                 fullWidth
                 variant="standard"
                 size="medium"
-                value={tagName}
-                onChange={(e) => setTagName(e.target.value)}
+                value={tagDialogController.name}
+                onChange={(e) => tagDialogDispatch({type: 'set',name: e.target.value})}
               />
             </Stack>
             {tagList.map((tag) => (

@@ -19,6 +19,8 @@ import Cookies from 'js-cookie';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import useNoteDialogControllerReducer from '../reducers/noteDialogControllerReducer.js';
+import useTagDialogControllerReducer from '../reducers/tagDialogControllerReducer.js';
+import useNoteListReducer from '../reducers/noteListReducer.js';
 
 export const Home = memo(function Home() {
   console.log('render');
@@ -45,7 +47,19 @@ export const Home = memo(function Home() {
     }
   }
 
-  // useEffect
+  // NoteListComponent methods
+  const [noteList, noteListDispatch] = useNoteListReducer();
+
+  // NoteDialogComponent methods
+  const [noteDialogController, noteDialogDispatch] = useNoteDialogControllerReducer();
+
+  // TagListComponent methods
+  const [tagList, setTagList] = useState([]);
+
+  // TagDialogComponent methods
+  const [tagDialogController, tagDialogDispatch] = useTagDialogControllerReducer();
+
+  // useEffect to get data from db
   useEffect(() => {
     //Check logged in
     user_id.current = Cookies.get('user-id');
@@ -72,19 +86,10 @@ export const Home = memo(function Home() {
               }
               return res.json();
             }).then((noteListData) => {
-              setNoteList(noteListData);
-              const selectedTag = tagListData.find((item) => item.selected === true);
-              if (selectedTag == null) {
-                setFilterNoteList(noteListData);
-              } else {
-                let tempList = [];
-                for (let note of noteListData) {
-                  if (note.tags.find((item) => item._id === selectedTag._id) != null) {
-                    tempList.push(note);
-                  }
-                }
-                setFilterNoteList(tempList);
-              }
+              noteListDispatch({
+                type: 'set',
+                list: noteListData
+              });
               setIsLoading(false);
               if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Fetched user notes for home page');
@@ -106,21 +111,8 @@ export const Home = memo(function Home() {
         }
         );
     }
-  }, [navigate]);
-
-  // NoteListComponent methods
-  const [noteList, setNoteList] = useState([]);
-  const [filterNoteList, setFilterNoteList] = useState([]);
-
-  // NoteDialogComponent methods
-  const [noteDialogController, noteDialogDispatch] = useNoteDialogControllerReducer();
-  
-  // TagListComponentComponent methods
-  const [tagList, setTagList] = useState([]);
-  
-  // TagDialogComponent methods
-  const [openTagDialog, setOpenTagDialog] = useState(false);
-  const [tagName, setTagName] = useState('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return isLoading ? (<LoadingComponent/>) : (
       <Container maxWidth="false"
@@ -173,8 +165,7 @@ export const Home = memo(function Home() {
             setTagList={setTagList}
             noteList={noteList}
             noteDialogDispatch={noteDialogDispatch} 
-            setOpenTagDialog={setOpenTagDialog}
-            setFilterNoteList={setFilterNoteList}
+            tagDialogDispatch={tagDialogDispatch}
             />
           </Box>
           <Box 
@@ -182,13 +173,12 @@ export const Home = memo(function Home() {
           <NoteListComponent 
             user_id={user_id.current}
             noteList={noteList}
-            setNoteList={setNoteList}
-            filterNoteList={filterNoteList}
-            setFilterNoteList={setFilterNoteList}  
+            noteListDispatch={noteListDispatch}
             noteDialogDispatch={noteDialogDispatch}
             setOpenErrorDialog={setOpenErrorDialog}
             error={error}
             setBackdrop={setBackdrop}
+            tagList={tagList} 
             />
           </Box>
         </Stack>
@@ -196,9 +186,7 @@ export const Home = memo(function Home() {
         user_id={user_id.current}
         tagList={tagList}
         noteList={noteList}
-        setNoteList={setNoteList}
-        filterNoteList={filterNoteList}
-        setFilterNoteList={setFilterNoteList}  
+        noteListDispatch={noteListDispatch}
         noteDialogController={noteDialogController}
         noteDialogDispatch={noteDialogDispatch}
         setOpenErrorDialog={setOpenErrorDialog}
@@ -209,16 +197,14 @@ export const Home = memo(function Home() {
       <TagDialog 
         user_id={user_id.current}
         noteList={noteList}
-        setNoteList={setNoteList}
-        openTagDialog={openTagDialog}
-        setOpenTagDialog={setOpenTagDialog}s
+        noteListDispatch={noteListDispatch}
         tagList={tagList}
         setTagList={setTagList}
-        tagName={tagName}
-        setTagName={setTagName}
         setOpenErrorDialog={setOpenErrorDialog}
         error={error}
         setBackdrop={setBackdrop}
+        tagDialogController={tagDialogController}
+        tagDialogDispatch={tagDialogDispatch}
       />
       <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
         <DialogContent>

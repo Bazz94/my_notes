@@ -12,6 +12,11 @@ const initObj = {
 function reducer(state, action) {
   switch (action.type) {
     case 'set': {
+      if (action.id === undefined && action.title === undefined && action.content === undefined 
+        && action.tags === undefined && action.modified === undefined && action.open === undefined
+      ) {
+        throw Error('Incorrect properties for set on noteDialogControllerReducer');
+      }
         return Object.fromEntries(
           Object.entries(state).map(([key, value]) => {
             if (action.hasOwnProperty(key)) {

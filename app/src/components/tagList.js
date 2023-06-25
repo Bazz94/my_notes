@@ -8,31 +8,40 @@ import { Divider } from '@mui/material';
 import { memo } from 'react';
 
 export const TagListComponent = memo(function TagListComponent({ 
-  user_id, tagList, setTagList, noteList, noteDialogDispatch, setOpenTagDialog, setFilterNoteList}) {
+  user_id, tagList, setTagList, noteDialogDispatch, tagDialogDispatch}) {
 
   function handleAddNote() {
     noteDialogDispatch({
       type: 'set',
-      open:true
+      open: true
     });
   }
 
   function handleEditTags() {
-    setOpenTagDialog(true);
+    tagDialogDispatch({
+      type: 'set',
+      open: true
+    });
   }
 
   async function handleTag(tag) {
-    // Set tag 
-    tag.selected = !tag.selected;
-    // Unselect all other tags
-    if (tag.selected === true) {
-      tagList.forEach((item) => {
-        if (item !== tag) {
-          item.selected = false;
+    // update tagList
+    const newTagList = tagList.map((item) => {
+      if (item !== tag) {
+        // Unselect all other tags
+        if (item.selected === false) {
+          return item;
         }
-      });
-    }
-    setTagList([...tagList]);
+        const newItem = {...item};
+        newItem.selected = false;
+        return newItem;
+      }
+      // Set tag 
+      const newItem = { ...item };
+      newItem.selected = !newItem.selected;
+      return newItem;
+    });
+    setTagList([...newTagList]);
 
     const data = {
       id: tag._id,
@@ -55,29 +64,6 @@ export const TagListComponent = memo(function TagListComponent({
         }
       }
     );
-
-    // Check if tags are selected
-    var selected = [];
-    tagList.forEach((tag) => {
-      if (tag.selected) {
-        selected.push(tag);
-      }
-    });
-    if (selected.length === 0) {
-      setFilterNoteList(noteList);
-      return false;
-    }
-    const newFilterNoteList = [];
-    selected.forEach((tag) => {
-      noteList.forEach((note) => {
-        if (note.tags.find(item => item._id === tag._id) != null) {
-          if (newFilterNoteList.find(item => item._id === note._id) == null) {
-            newFilterNoteList.push(note);
-          }
-        }
-      });
-    });
-    setFilterNoteList(newFilterNoteList);
   }
 
   return (

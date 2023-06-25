@@ -5,10 +5,10 @@ import Card from '@mui/material/Card';
 import { CardActionArea } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
-export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, setNoteList, filterNoteList,
-  setFilterNoteList, noteDialogDispatch, setOpenErrorDialog, error, setBackdrop }) {
+export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, noteListDispatch,
+   noteDialogDispatch, setOpenErrorDialog, error, setBackdrop, tagList }) {
 
   function handleNoteClick(note) {
     const timeFormat = {
@@ -46,10 +46,10 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
         if (!res.ok) {
           throw Error(res.message);
         }
-        const newList = noteList.filter(note => note._id !== id);
-        const newFilterList = filterNoteList.filter(note => note._id !== id);
-        setNoteList(newList);
-        setFilterNoteList(newFilterList);
+        noteListDispatch({
+          type: 'delete',
+          _id: id,
+        })
         if(process.env.REACT_APP_DEV_MODE){
           console.log('Note deleted');
         }
@@ -63,9 +63,12 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
     );
   }
 
+  const filteredNoteList = useMemo(() => filterNotesList(tagList, noteList), [tagList, noteList]);
+
   return (
     <Stack spacing={1}>
-      {filterNoteList.map((note) => (
+      {filteredNoteList.map((note) => {
+        return (
         <Card sx={{ minWidth: 200 }} key={note._id}>
           <Stack direction="row">
             <CardActionArea onClick={(e) => handleNoteClick(note)}> 
@@ -81,7 +84,26 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
             </IconButton>
           </Stack>
         </Card>
-      ))}
+        );
+      })}
     </Stack>
   );
 });
+
+function filterNotesList(_tagList, _noteList) {
+  const selectedTag = _tagList.find(item => item.selected === true);
+  let visibleNotes = [];
+  if (selectedTag === undefined) {
+    visibleNotes = _noteList;
+    return visibleNotes;
+  }
+  console.log(_noteList);
+  _noteList.forEach((note) => {
+    if (note.tags.find(item => item._id === selectedTag._id) != null) {
+      if (visibleNotes.find(item => item._id === note._id) == null) {
+        visibleNotes.push(note);
+      }
+    }
+  });
+  return visibleNotes;
+}
