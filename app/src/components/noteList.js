@@ -5,9 +5,31 @@ import Card from '@mui/material/Card';
 import { CardActionArea } from "@mui/material";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { memo, useMemo } from 'react';
 
-export default function NoteList({ user_id, noteList, setNoteList, filterNoteList, setFilterNoteList,
-  handleNoteClick, setOpenErrorDialog, setError, setBackdrop }) {
+export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, noteListDispatch,
+   noteDialogDispatch, setOpenErrorDialog, error, setBackdrop, tagList }) {
+
+  function handleNoteClick(note) {
+    const timeFormat = {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    };
+    const formatModified = new Date(note.modified).toLocaleDateString('en-GB', timeFormat);
+    noteDialogDispatch({
+      type: 'set',
+      open: true
+    });
+    noteDialogDispatch({
+      type: 'set',
+      id: note._id,
+      title: note.title,
+      content: note.content,
+      tags: note.tags,
+      modified: formatModified,
+    });
+  }
 
   async function handleNoteDelete(id) {
     const data = { note_id: id };
@@ -24,26 +46,29 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
         if (!res.ok) {
           throw Error(res.message);
         }
-        const newList = noteList.filter(note => note._id !== id);
-        const newFilterList = filterNoteList.filter(note => note._id !== id);
-        setNoteList(newList);
-        setFilterNoteList(newFilterList);
+        noteListDispatch({
+          type: 'delete',
+          _id: id,
+        })
         if(process.env.REACT_APP_DEV_MODE){
           console.log('Note deleted');
         }
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
     );
   }
 
+  const filteredNoteList = useMemo(() => filterNotesList(tagList, noteList), [tagList, noteList]);
+
   return (
     <Stack spacing={1}>
-      {filterNoteList.map((note) => (
+      {filteredNoteList.map((note) => {
+        return (
         <Card sx={{ minWidth: 200 }} key={note._id}>
           <Stack direction="row">
             <CardActionArea onClick={(e) => handleNoteClick(note)}> 
@@ -59,6 +84,25 @@ export default function NoteList({ user_id, noteList, setNoteList, filterNoteLis
             </IconButton>
           </Stack>
         </Card>
-      ))}
+        );
+      })}
     </Stack>
-);}
+  );
+});
+
+function filterNotesList(_tagList, _noteList) {
+  const selectedTag = _tagList.find(item => item.selected === true);
+  let visibleNotes = [];
+  if (selectedTag === undefined) {
+    visibleNotes = _noteList;
+    return visibleNotes;
+  }
+  _noteList.forEach((note) => {
+    if (note.tags.find(item => item._id === selectedTag._id) != null) {
+      if (visibleNotes.find(item => item._id === note._id) == null) {
+        visibleNotes.push(note);
+      }
+    }
+  });
+  return visibleNotes;
+}

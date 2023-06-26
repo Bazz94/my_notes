@@ -9,35 +9,35 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
+import { memo, useRef } from 'react';
 
-
-var oldTag;
-
-export default function TagDialog(
-  { user_id, noteList, noteListRef, setNoteList, tagOpen, setTagOpen, tagList, tagListRef, setTagList, tagName, setTagName,
-    setOpenErrorDialog, setError, setBackdrop }) {
-
-
+export const TagDialog = memo(function TagDialog(
+  { user_id, noteList, noteListDispatch,  tagList, setTagList,
+    setOpenErrorDialog, error, setBackdrop, tagDialogController, tagDialogDispatch}) {
 
   function handleClose() {
-    setTagOpen(false);
-    setTagName('');
+    tagDialogDispatch({
+      type: 'clear'
+    });
   }
 
   async function handelNewTag() {
-    if (tagName.length < 1) {
+    if (tagDialogController.name.length < 1) {
       return false;
     }
-    if (tagList.find(item => item.name === tagName) != null) {
-      setError('Tag already exists');
+    if (tagList.find(item => item.name === tagDialogController.name) != null) {
+      error.current = 'Tag already exists';
       setOpenErrorDialog(true);
-      setTagName('');
+      tagDialogDispatch({
+        type: 'set',
+        name: ''
+      });
       return false;
     }
 
     // create in db
     const data = {
-      name: tagName,
+      name: tagDialogController.name,
     }
 
     setBackdrop(true);
@@ -54,46 +54,72 @@ export default function TagDialog(
         }
         return res.json();
       }).then((data) => {
-        const newTag = { _id: data, name: tagName, editing: false, selected: false };
-        const newTagList = [...tagList, newTag]; 
-        setTagList(newTagList);
-        if (process.env.REACT_APP_DEV_MODE === true) {
+        const newTag = { _id: data, name: tagDialogController.name, editing: false, selected: false };
+        setTagList([...tagList, newTag]);
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
           console.log('Tags updated');
         }
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
     );
-    setTagName('');
+    tagDialogDispatch({
+      type: 'set',
+      name: ''
+    });
   }
 
-  
-  async function handleTagEdit(tag) {
-    if (tag.editing !== true) {
-      tagList.forEach((item) => {
-        if (item.editing === true) {
-          item.name = oldTag.name;
+  const oldTag = useRef({name: null});
+
+  async function handleTagEdit(tag) {    
+    if (tag.editing === false || tag.editing === undefined) {
+      const newTagList = tagList.map((item) => {
+        if (item !== tag) {
+          if (item.editing === true) {
+            return { ...item, editing: false, name: oldTag.current.name };
+          }
+          return item;
+        } else {
+          return {...item, editing: true};
         }
-        item.editing = false;
       });
-      oldTag = {...tag};
-      tag.editing = true;
-      setTagList([...tagList]);
+      setTagList(newTagList);
+      oldTag.current = {...tag};
     } else {
       let noteEditLog = [];
       const tempNoteList = noteList;
-      tag.editing = false;
-      if  (oldTag.name !== tag.name) {
-        noteList.forEach((note) => {
-          const noteTag = note.tags.find(item => item._id === tag._id); 
-          if (noteTag != null) {
-            noteEditLog.push({ note_id: note._id, tag_id: tag._id, name: tag.name });
-            noteTag.name = tag.name;
+      const tempTagList = [...tagList];
+      const newTagList = tagList.map((item) => {
+        if (item !== tag) {
+          return item;
+        } else {
+          return { ...item, editing: false };
+        }
+      });
+      setTagList(newTagList);
+      if (oldTag.current.name !== tag.name) {
+        const newNoteList = noteList.map((note) => {
+          let tagFound = false;
+          const newNoteTags = note.tags.map(item => {
+            if (item._id === tag._id) {
+              tagFound = true;
+              return {...item, name: tag.name};
+            }
+            return item;
+          });
+          if (tagFound === false) {
+            return note;
           }
+          return {...note, tags: newNoteTags};
+          //
+        });
+        noteListDispatch({
+          type: 'set',
+          list: newNoteList
         });
         const data = {
           id: tag._id,
@@ -112,17 +138,18 @@ export default function TagDialog(
             if (!res.ok) {
               throw Error(res.message);
             }
-            setTagList([...tagList]);
-            if (process.env.REACT_APP_DEV_MODE === true) {
+            if (process.env.REACT_APP_DEV_MODE === 'true') {
               console.log('Tags updated');
             }
             setBackdrop(false);
           }).catch((err) => {
             // revert changes
-            tag.name = oldTag.name;
-            setTagList([...tagList]);
-            setNoteList([...tempNoteList]);
-            setError(err.message);
+            setTagList([...tempTagList]);
+            noteListDispatch({
+              type: 'set',
+              list: tempNoteList
+            });
+            error.current = err.message;
             setBackdrop(false);
             setOpenErrorDialog(true);
             return false;
@@ -141,25 +168,24 @@ export default function TagDialog(
             if (!res.ok) {
               throw Error(res.message);
             }
-            setNoteList([...noteList]);
-            if (process.env.REACT_APP_DEV_MODE === true) {
-              if (process.env.REACT_APP_DEV_MODE === true) {
+            if (process.env.REACT_APP_DEV_MODE === 'true') {
+              if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Notes updated');
               }
             }
           }).catch((err) => {
             // revert changes
-            tag.name = oldTag.name;
-            setTagList([...tagList]);
-            setNoteList([...tempNoteList]);
-            setError(err.message);
+            setTagList([...tempTagList]);
+            noteListDispatch({
+              type: 'set',
+              list: tempNoteList
+            });
+            error.current = err.message;
             setOpenErrorDialog(true);
             return false;
           }
         );
       }
-      tag.editing = false;
-      setTagList([...tagList]);
     }
   }
 
@@ -170,13 +196,15 @@ export default function TagDialog(
 
     const newList = tagList.filter(item => item._id !== tag._id);
     
-    noteList.forEach((note) => {
+    const newNoteList = noteList.map((note) => {
       if (note.tags.find(item => item._id === tag._id) != null) {
         noteDeleteLog.push({ note_id: note._id, tag_id: tag._id });
-        note.tags = note.tags.filter(item => item._id !== tag._id);
+        const newNoteTags = note.tags.filter(item => item._id !== tag._id);
+        return {...note, newNoteTags};
       }
+      return note;
     });
-    
+
     // set tagList in db
     const data = {
       id: tag._id,
@@ -193,15 +221,19 @@ export default function TagDialog(
         if (!res.ok) {
           throw Error(res.message);
         }
+        
         setTagList(newList);
         setBackdrop(false);
         console.log('Tag deleted');
       }).catch((err) => {
         // revet changes
         setTagList(tempTagList);
-        setNoteList(tempNoteList);
+        noteListDispatch({
+          type: 'set',
+          list: tempNoteList
+        });
         setBackdrop(false);
-        setError(err.message);
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
@@ -219,27 +251,36 @@ export default function TagDialog(
         if (!res.ok) {
           throw Error(res.message);
         }
-        setNoteList([...noteList]);
-        if (process.env.REACT_APP_DEV_MODE === true) {
+        noteListDispatch({
+          type: 'set',
+          list: newNoteList
+        });
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
           console.log('Notes updated');
         }
       }).catch((err) => {
         // revert changes
         setTagList(tempTagList);
-        setNoteList(tempNoteList);
-        setError(err.message);
+        noteListDispatch({
+          type: 'set',
+          list: tempNoteList
+        });
+        error.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
     );
 
-    setTagName('');
+    tagDialogDispatch({
+      type: 'set',
+      name: ''
+    });
   }
 
 
   return (
     <div>
-      <Dialog open={tagOpen} maxWidth='xs' fullWidth={true}>
+      <Dialog open={tagDialogController.open} maxWidth='xs' fullWidth={true}>
         <DialogTitle>Tags</DialogTitle>
         <DialogContent>
           <Stack>
@@ -255,8 +296,8 @@ export default function TagDialog(
                 fullWidth
                 variant="standard"
                 size="medium"
-                value={tagName}
-                onChange={(e) => setTagName(e.target.value)}
+                value={tagDialogController.name}
+                onChange={(e) => tagDialogDispatch({type: 'set',name: e.target.value})}
               />
             </Stack>
             {tagList.map((tag) => (
@@ -276,8 +317,14 @@ export default function TagDialog(
                   value={tag.name}
                   disabled={!(tag.editing)}
                   onChange={(e) => {
-                    tag.name = e.target.value;
-                    setTagList([...tagList]);
+                    const newTagList = tagList.map((item) => {
+                      if (item !== tag) {
+                        return item;
+                      } else {
+                        return { ...item, name: e.target.value };
+                      }
+                    });
+                    setTagList(newTagList);
                   }}
                 />
                 {tag.editing ? <IconButton aria-label="delete" onClick={(e) => handleTagDelete(tag)}>
@@ -293,4 +340,4 @@ export default function TagDialog(
       </Dialog>
     </div>
   );
-}
+});

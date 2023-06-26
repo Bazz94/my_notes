@@ -5,35 +5,43 @@ import Card from '@mui/material/Card';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Chip from '@mui/material/Chip';
 import { Divider } from '@mui/material';
+import { memo } from 'react';
 
-export default function tagList({ 
-  user_id, tagList, filterNoteListRef, setTagList, noteList, setNoteOpen, setTagOpen,
-   filterNoteList, setFilterNoteList}) {
+export const TagListComponent = memo(function TagListComponent({ 
+  user_id, tagList, setTagList, noteDialogDispatch, tagDialogDispatch}) {
 
   function handleAddNote() {
-    setNoteOpen(true);
+    noteDialogDispatch({
+      type: 'set',
+      open: true
+    });
   }
 
   function handleEditTags() {
-    setTagOpen(true);
+    tagDialogDispatch({
+      type: 'set',
+      open: true
+    });
   }
 
   async function handleTag(tag) {
-    // Set tag 
-    tag.selected = !tag.selected;
-    // Unselect all other tags
-    if (tag.selected === true) {
-      tagList.forEach((item) => {
-        if (item !== tag) {
-          item.selected = false;
+    // update tagList
+    const newTagList = tagList.map((item) => {
+      if (item !== tag) {
+        // Unselect all other tags
+        if (item.selected === false) {
+          return item;
         }
-      });
-    }
-    setTagList([...tagList]);
+        return {...item, selected: false};
+      }
+      // Set tag 
+      return { ...item, selected: !item.selected };
+    });
+    setTagList([...newTagList]);
 
     const data = {
       id: tag._id,
-      selected: tag.selected,
+      selected: !tag.selected,
     }
     
     // set tagList in db
@@ -46,35 +54,12 @@ export default function tagList({
     })
       .then((res) => {
         if (res.ok) {
-          if (process.env.REACT_APP_DEV_MODE === true) {
+          if (process.env.REACT_APP_DEV_MODE === 'true') {
             console.log('Tag selection updated');
           }
         }
       }
     );
-
-    // Check if tags are selected
-    var selected = [];
-    tagList.forEach((tag) => {
-      if (tag.selected) {
-        selected.push(tag);
-      }
-    });
-    if (selected.length === 0) {
-      setFilterNoteList(noteList);
-      return false;
-    }
-    setFilterNoteList([]);
-    selected.forEach((tag) => {
-      noteList.forEach((note) => {
-        if (note.tags.find(item => item._id === tag._id) != null) {
-          if (filterNoteListRef.current.find(item => item._id === note._id) == null) {
-            const newFilterNoteList = [...filterNoteListRef.current, note];
-            setFilterNoteList(newFilterNoteList);
-          }
-        }
-      });
-    });
   }
 
   return (
@@ -108,5 +93,4 @@ export default function tagList({
       </Stack>
     </Card>
   );
-}
-
+});

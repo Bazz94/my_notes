@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography'
@@ -11,41 +11,35 @@ import { Box } from '@mui/material';
 
 
 
-export default function NoteDialog({ 
-  user_id, openNote, setNoteOpen, tagList, noteList, noteListRef, setNoteList, filterNoteList, 
-  setFilterNoteList, filterNoteListRef, titleValue, setTitle, contentValue, setContent, modified, 
-  setModified, idValue, setId, noteTags, setNoteTags, setOpenErrorDialog, setError, setBackdrop, 
-  isDesktopView }) {
+export const NoteDialog = memo(function NoteDialog({ 
+  user_id, tagList, noteList, noteListDispatch, noteDialogController, 
+  noteDialogDispatch, setOpenErrorDialog, error, setBackdrop, isDesktopView }) {
 
   const [inputError, setInputError] = useState(false);
 
   function noteCancel() {
-    setTitle('');
-    setContent('');
-    setId(null);
-    setNoteOpen(false);
-    setModified(null);
-    setNoteTags([]);
+    noteDialogDispatch({
+      type: 'clear',
+    });
   }; 
 
   async function handleNoteOk() {
-
-    if (titleValue === '') {
+    if (noteDialogController.title === '') {
       setInputError(true);
       return false;
     }
-    if (idValue !== null) {
+    if (noteDialogController.id !== null) {
       // Update note
-      const note = noteList.find(note => note._id === idValue);
-      if (note.title !== titleValue
-        || note.content !== contentValue
-        || note.tags !== noteTags
+      const note = noteList.find(note => note._id === noteDialogController.id);
+      if (note.title !== noteDialogController.title
+        || note.content !== noteDialogController.content
+        || note.tags !== noteDialogController.tags
       ) {
-        let data = {
-          note_id: idValue,
-          title: titleValue,
-          content: contentValue,
-          tags: noteTags
+        const data = {
+          note_id: noteDialogController.id,
+          title: noteDialogController.title,
+          content: noteDialogController.content,
+          tags: noteDialogController.tags
         }
 
           // Update db
@@ -63,25 +57,23 @@ export default function NoteDialog({
               }
               
               return res.json();
-            }).then((data) => {
-              note.title = titleValue;
-              note.content = contentValue;
-              note.tags = noteTags;
-              note.modified = data;
-              const filterNote = filterNoteList.find(note => note._id === idValue);
-              filterNote.title = titleValue;
-              filterNote.content = contentValue;
-              filterNote.tags = noteTags;
-              filterNote.modified = data;
-              setNoteList([...noteListRef.current]);
-              setFilterNoteList([...filterNoteListRef.current]);
+            }).then((modifiedDate) => {
+              noteListDispatch({
+                type: 'edit',
+                _id: noteDialogController.id,
+                title: noteDialogController.title,
+                content: noteDialogController.content,
+                tags: noteDialogController.tags,
+                modified: modifiedDate,
+                created: note.created
+              });
               setBackdrop(false);
-              if (process.env.REACT_APP_DEV_MODE === true) {
+              if (process.env.REACT_APP_DEV_MODE === 'true') {
                 console.log('Notes updated');
               }
             }).catch((err) => {
               setBackdrop(false);
-              setError(err.message);
+              error.current = err.message;
               setOpenErrorDialog(true);
               return false;
             }
@@ -91,9 +83,9 @@ export default function NoteDialog({
       // Create note
       
       let data = {
-        title: titleValue,
-        content: contentValue,
-        tags: noteTags
+        title: noteDialogController.title,
+        content: noteDialogController.content,
+        tags: noteDialogController.tags
       }
 
       // Create note in db
@@ -111,33 +103,22 @@ export default function NoteDialog({
           }
           return res.json();
         }).then((data) => {
-          const newNote = { 
-            _id: data._id, 
-            title: titleValue, 
-            content: contentValue, 
-            tags: noteTags, 
-            modified: data.modified
-          };
-          setId(data._id);
-          const newNoteList = [newNote, ...noteList]
-          // Check to see if note can be displayed on filterNoteList
-          const selectedTag = tagList.find((item) => item.selected === true);
-          let newFilterNote = [];
-          if (selectedTag == null) {
-            newFilterNote = [newNote, ...filterNoteList];
-          } 
-          if (noteTags.includes(selectedTag)){
-            newFilterNote = [newNote, ...filterNoteList];
-          }
-          setNoteList(newNoteList);
-          setFilterNoteList(newFilterNote);
+          noteListDispatch({
+            type: 'add',
+            _id: data._id,
+            title: noteDialogController.title,
+            content: noteDialogController.content,
+            tags: noteDialogController.tags,
+            modified: data.modified,
+            created: data.created
+          });
           setBackdrop(false);
-          if (process.env.REACT_APP_DEV_MODE === true) {
+          if (process.env.REACT_APP_DEV_MODE === 'true') {
             console.log('Notes created');
           }
         }).catch((err) => {
           setBackdrop(false);
-          setError(err.message);
+          error.current = err.message;
           setOpenErrorDialog(true);
           return false;
         }
@@ -145,25 +126,29 @@ export default function NoteDialog({
     }
 
     // Clean up 
+    noteDialogDispatch({
+      type: 'clear'
+    });
     setInputError(false);
-    setTitle('');
-    setContent('');
-    setId(null);
-    setNoteOpen(false);
-    setNoteTags([]);
   }
 
   function handleClickTag(tag) {
-    if (noteTags.find(item => item._id === tag._id) != null) {
-      setNoteTags(noteTags.filter(item => item._id !== tag._id));
+    if (noteDialogController.tags.find(item => item._id === tag._id) != null) {
+      noteDialogDispatch({
+        type: 'set',
+        tags: noteDialogController.tags.filter(item => item._id !== tag._id)
+      });
     } else {
-      const newNoteTags = [...noteTags, tag]; 
-      setNoteTags(newNoteTags);
+      const newNoteTags = [...noteDialogController.tags, tag]; 
+      noteDialogDispatch({
+        type: 'set',
+        tags: newNoteTags
+      });
     }
   }
 
   return (
-    <Dialog open={openNote} maxWidth='md' fullWidth={true}>
+    <Dialog open={noteDialogController.open} maxWidth='md' fullWidth={true}>
       <DialogContent sx={{padding: isDesktopView ? '' : '0.2rem 0.6rem'}}>
         <TextField
           autoFocus
@@ -175,8 +160,8 @@ export default function NoteDialog({
           variant="standard"
           size="medium"
           error={inputError}
-          value={titleValue}
-          onChange={(e) => setTitle(e.target.value)}
+          value={noteDialogController.title}
+          onChange={(e) => noteDialogDispatch({ type: 'set', title: e.target.value })}
         />
         <TextField
           autoFocus
@@ -188,15 +173,15 @@ export default function NoteDialog({
           size="small"
           multiline
           minRows="4"
-          value={contentValue}
-          onChange={(e) => setContent(e.target.value)}
+          value={noteDialogController.content}
+          onChange={(e) => noteDialogDispatch({ type: 'set', content: e.target.value })}
         />
       </DialogContent>
       <Stack direction='row' sx={{ padding: isDesktopView ? '0px 1.5rem' : '0px 0.6rem'}}>
           {tagList.map((tag) => (
             <Chip key={tag._id}
               color='info'
-              variant={noteTags.find(item => item._id === tag._id) != null 
+              variant={noteDialogController.tags.find(item => item._id === tag._id) != null 
                 ? "filled" : "outlined"} 
               onClick={() => {
                 handleClickTag(tag);
@@ -213,13 +198,13 @@ export default function NoteDialog({
         </DialogActions>
         <Box sx={{width: '63%'}}></Box>
         <Stack direction='row-reverse' sx={{ margin: isDesktopView ? '1rem 1.5rem' : '0.4rem 1rem' }}>
-          { modified && (
+          { noteDialogController.modified && (
           <Typography sx={{ marginRight: '1rem' }}
-            variant="caption" color="common"> Modified {modified}
+              variant="caption" color="common"> Modified {noteDialogController.modified}
           </Typography>
           )}
         </Stack>
       </Stack>
     </Dialog>
   );
-}
+});
