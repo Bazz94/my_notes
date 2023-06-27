@@ -20,6 +20,7 @@ export default function Login() {
   const [inputPassword, setInputPassword] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
   async function HandleLogin() {
     if (inputPassword === '') {
@@ -33,7 +34,7 @@ export default function Login() {
       return false;
     }
 
-    // Call api
+    // Call api to verify login details
     const requestOptions = {
       method: 'GET',
       headers: {
@@ -53,7 +54,7 @@ export default function Login() {
         return res.json();
       }
     }).then((data) => {
-      // Login
+      // Login and navigate to Home page
       const cookieOptions = { expires: 7, domain: process.env.REACT_APP_DOMAIN, secure: true };
       Cookies.set('user-id', data, cookieOptions);
       setIsLoading(false);
@@ -65,9 +66,6 @@ export default function Login() {
       return false;
     });
   }
-
-
-  const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);

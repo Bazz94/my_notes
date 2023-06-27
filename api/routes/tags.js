@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user.js');
 const Mongoose = require('mongoose');
+const getUser = require('../middleware/getUser.js');
 
 // Get all tags
 router.get('/:id', getUser, async (req, res) => {
+  // get user from getUser
   const user = res.user;
   try {
-    // return tags
+    // return users tags
     return res.status(200).json(user.tags);
   } catch (err) {
     return res.status(500).json({ message: err.message });
@@ -16,8 +18,11 @@ router.get('/:id', getUser, async (req, res) => {
 
 // Create one tag
 router.post('/:id', getUser, async (req, res) => {
+  // get user from getUser
   const user = res.user;
+  // get name from body
   const newName = req.body.name;
+  // check that the required vars are set
   if (newName == null) {
     return res.status(400).json({ message: "tag name is required" });
   }
@@ -25,12 +30,12 @@ router.post('/:id', getUser, async (req, res) => {
     name: newName,
     selected: false
   };
+  // Check if name is already used
   const tag = user.tags.find((item) => item.name === newName);
   if (tag != undefined) {
     return res.status(400).json({ message: "duplicate name" });
   }
   try {
-    // Check that name is unique
     // Create tag in db
     user.tags.push(tagData);
     const newUser = await user.save();
@@ -44,12 +49,13 @@ router.post('/:id', getUser, async (req, res) => {
 
 // Update one tag
 router.patch('/:id', getUser,  async (req, res) => {
+  // Get user from getUser
   const user = res.user;
-  // Get tag id
+  // Get tag data from body
   const id = req.body.id;
-  //const mId = new Mongoose.Types.ObjectId(id);
   const newName = req.body.name;
   const newSelected = req.body.selected;
+  // check that the required vars are set
   if (id == null) {
     return res.status(400).json({ message: "tag id is required" });
   }
@@ -67,7 +73,7 @@ router.patch('/:id', getUser,  async (req, res) => {
       tag.name = newName;
     }
     if (newSelected != null) {      
-      // Update tag data in db
+      // Update tag in the note.tags data in db
       if (newSelected === true){
         user.tags.forEach((item) => {
           item.selected = false;
@@ -85,9 +91,11 @@ router.patch('/:id', getUser,  async (req, res) => {
 
 // Delete one tag
 router.delete('/:id', getUser, async (req, res) => {
-  // Get tag id
+  // get user from getUser
   const user = res.user;
+  // get tag id from body
   const id = req.body.id;
+  // check that the required vars are set
   if (id == null) {
     return res.status(400).json({ message: "tag id is required" });
   }
@@ -106,22 +114,5 @@ router.delete('/:id', getUser, async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 });
-
-async function getUser(req, res, next) {
-  let user;
-  if (req.params.id == null) {
-    return res.status(400).json({ message: "user id is required" });
-  }
-  try {
-    user = await User.findById(req.params.id);
-    if (user == null) {
-      return res.status(404).json({ message: 'user not found' });
-    }
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-  res.user = user;
-  next();
-}
 
 module.exports = router;

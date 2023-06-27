@@ -1,3 +1,7 @@
+/*
+  Appears when a note is clicked or a new note needs to be made.
+  Handles not creation and edits.
+*/
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -13,14 +17,17 @@ import { Box } from '@mui/material';
 
 export const NoteDialog = memo(function NoteDialog({ 
   user_id, tagList, noteList, noteListDispatch, noteDialogController, 
-  noteDialogDispatch, setOpenErrorDialog, error, setBackdrop, isDesktopView }) {
+  noteDialogDispatch, setOpenErrorDialog, errorMessage, setBackdrop, isDesktopView }) {
 
   const [inputError, setInputError] = useState(false);
 
   function noteCancel() {
+    // clears note data from ui components
+    // and closes the noteDialog component
     noteDialogDispatch({
       type: 'clear',
     });
+    setInputError(false);
   }; 
 
   async function handleNoteOk() {
@@ -28,66 +35,15 @@ export const NoteDialog = memo(function NoteDialog({
       setInputError(true);
       return false;
     }
-    if (noteDialogController.id !== null) {
-      // Update note
-      const note = noteList.find(note => note._id === noteDialogController.id);
-      if (note.title !== noteDialogController.title
-        || note.content !== noteDialogController.content
-        || note.tags !== noteDialogController.tags
-      ) {
-        const data = {
-          note_id: noteDialogController.id,
-          title: noteDialogController.title,
-          content: noteDialogController.content,
-          tags: noteDialogController.tags
-        }
+    // Check to see if a note is being edited or a new note is being made
+    if (noteDialogController.id === null) {
+      // Create a new note
 
-          // Update db
-        setBackdrop(true);
-        await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
-            method: 'PATCH',
-            headers: {
-              "Content-type": "application/json"
-            },
-            body: JSON.stringify(data)
-          })
-            .then((res) => {
-              if (!res.ok) {
-                throw Error(res.message);
-              }
-              
-              return res.json();
-            }).then((modifiedDate) => {
-              noteListDispatch({
-                type: 'edit',
-                _id: noteDialogController.id,
-                title: noteDialogController.title,
-                content: noteDialogController.content,
-                tags: noteDialogController.tags,
-                modified: modifiedDate,
-                created: note.created
-              });
-              setBackdrop(false);
-              if (process.env.REACT_APP_DEV_MODE === 'true') {
-                console.log('Notes updated');
-              }
-            }).catch((err) => {
-              setBackdrop(false);
-              error.current = err.message;
-              setOpenErrorDialog(true);
-              return false;
-            }
-          );
-      }
-    } else {
-      // Create note
-      
       let data = {
         title: noteDialogController.title,
         content: noteDialogController.content,
         tags: noteDialogController.tags
       }
-
       // Create note in db
       setBackdrop(true);
       await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
@@ -96,36 +52,99 @@ export const NoteDialog = memo(function NoteDialog({
           "Content-type": "application/json"
         },
         body: JSON.stringify(data)
-      })
-        .then((res) => {
-          if (!res.ok) {
-            throw Error(res.message);
-          }
-          return res.json();
-        }).then((data) => {
-          noteListDispatch({
-            type: 'add',
-            _id: data._id,
-            title: noteDialogController.title,
-            content: noteDialogController.content,
-            tags: noteDialogController.tags,
-            modified: data.modified,
-            created: data.created
-          });
-          setBackdrop(false);
-          if (process.env.REACT_APP_DEV_MODE === 'true') {
-            console.log('Notes created');
-          }
-        }).catch((err) => {
-          setBackdrop(false);
-          error.current = err.message;
-          setOpenErrorDialog(true);
-          return false;
+      }).then((res) => {
+        if (!res.ok) {
+          throw Error(res.message);
         }
-      );
+        return res.json();
+      }).then((data) => {
+        noteListDispatch({
+          type: 'add',
+          _id: data._id,
+          title: noteDialogController.title,
+          content: noteDialogController.content,
+          tags: noteDialogController.tags,
+          modified: data.modified,
+          created: data.created
+        });
+        setBackdrop(false);
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
+          console.log('Notes created');
+        }
+      }).catch((err) => {
+        setBackdrop(false);
+        errorMessage.current = err.message;
+        setOpenErrorDialog(true);
+        setInputError(false);
+        return false;
+      });
+
+    } else {
+      // Update existing note
+
+      const note = noteList.find(note => note._id === noteDialogController.id);
+      // check that changes have been made
+      if (note.title === noteDialogController.title
+        && note.content === noteDialogController.content
+        && note.tags === noteDialogController.tags
+      ) {
+        // no changes have been made
+
+        // clears note data from ui components
+        // and closes the noteDialog component
+        noteDialogDispatch({
+          type: 'clear'
+        });
+        setInputError(false);
+        return false;
+      }
+
+      // Changes have been made
+
+      const data = {
+        note_id: noteDialogController.id,
+        title: noteDialogController.title,
+        content: noteDialogController.content,
+        tags: noteDialogController.tags
+      }
+      // Update db
+      setBackdrop(true);
+      await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
+        method: 'PATCH',
+        headers: {
+          "Content-type": "application/json"
+        },
+        body: JSON.stringify(data)
+      }).then((res) => {
+        if (!res.ok) {
+          throw Error(res.message);
+        }
+        return res.json();
+      }).then((modifiedDate) => {
+        noteListDispatch({
+          type: 'edit',
+          _id: noteDialogController.id,
+          title: noteDialogController.title,
+          content: noteDialogController.content,
+          tags: noteDialogController.tags,
+          modified: modifiedDate,
+          created: note.created
+        });
+        setBackdrop(false);
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
+          console.log('Notes updated');
+        }
+      }).catch((err) => {
+        setBackdrop(false);
+        errorMessage.current = err.message;
+        setOpenErrorDialog(true);
+        setInputError(false);
+        return false;
+      });
     }
 
-    // Clean up 
+    // clears note data from ui components
+    // and closes the noteDialog component
     noteDialogDispatch({
       type: 'clear'
     });
@@ -133,18 +152,20 @@ export const NoteDialog = memo(function NoteDialog({
   }
 
   function handleClickTag(tag) {
+    // Check to see if the tag is being added or removed from the note
     if (noteDialogController.tags.find(item => item._id === tag._id) != null) {
+      // tag is being removed from the note
       noteDialogDispatch({
         type: 'set',
         tags: noteDialogController.tags.filter(item => item._id !== tag._id)
       });
-    } else {
-      const newNoteTags = [...noteDialogController.tags, tag]; 
-      noteDialogDispatch({
-        type: 'set',
-        tags: newNoteTags
-      });
-    }
+    } 
+    // tag is being added to the note
+    const newNoteTags = [...noteDialogController.tags, tag]; 
+    noteDialogDispatch({
+      type: 'set',
+      tags: newNoteTags
+    });
   }
 
   return (

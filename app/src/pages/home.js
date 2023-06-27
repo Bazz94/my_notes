@@ -1,4 +1,8 @@
-import * as React from 'react';
+/* 
+  This is the Home page of the app, once a user is signed in then they are sent to this page.
+  From here the user can open a dialog to create or edit notes or open a dialog to create or 
+  edit tags. 
+*/
 import { Typography, Container } from "@mui/material";
 import { useEffect, useRef, useState, memo } from 'react';
 import { NoteListComponent } from '../components/noteList.js';
@@ -23,15 +27,17 @@ import useTagDialogControllerReducer from '../reducers/tagDialogControllerReduce
 import useNoteListReducer from '../reducers/noteListReducer.js';
 
 export const Home = memo(function Home() {
-  console.log('render');
+  if (process.env.REACT_APP_DEV_MODE === 'true') {
+    console.log('rendered Home');
+  }
   const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
   const user_id = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [backdrop, setBackdrop] = useState(false);
-  const error = useRef(null);
-  const redirect = useRef(false);
+  const [isLoading, setIsLoading] = useState(true); // used while fetching notes and tags data
+  const [backdrop, setBackdrop] = useState(false); // a backdrop is a loading screen that appears when the app is busy
+  const errorMessage = useRef(null);
+  const redirectToLogin = useRef(false); // for when major errors have occurred and the app cant continue normally
   const navigate = useNavigate();
-  const [showLogOut, setShowLogOut] = useState(false);
+  const [showLogOutButton, setShowLogOutButton] = useState(false);
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
   function handleLogOut() {
@@ -41,25 +47,25 @@ export const Home = memo(function Home() {
 
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
-    if (redirect) {
+    if (redirectToLogin) {
       Cookies.remove('user-id');
       navigate("/login");
     }
   }
 
-  // NoteListComponent methods
+  // Contains the users notes and handles interactions with them
   const [noteList, noteListDispatch] = useNoteListReducer();
-
-  // NoteDialogComponent methods
-  const [noteDialogController, noteDialogDispatch] = useNoteDialogControllerReducer();
-
-  // TagListComponent methods
+  
+  // Contains the users tag list
   const [tagList, setTagList] = useState([]);
 
-  // TagDialogComponent methods
+  // Contains and handles data displayed on the noteDialog. Also opens and closes the dialog
+  const [noteDialogController, noteDialogDispatch] = useNoteDialogControllerReducer();
+
+  // Contains and handles data displayed on the tagDialog. Also opens and closes the dialog
   const [tagDialogController, tagDialogDispatch] = useTagDialogControllerReducer();
 
-  // useEffect to get data from db
+  // Get the users note and tag data from db
   useEffect(() => {
     //Check logged in
     user_id.current = Cookies.get('user-id');
@@ -96,20 +102,19 @@ export const Home = memo(function Home() {
               }
             }).catch((err2) => {
               setIsLoading(false);
-              redirect.current = true;
-              error.current = err2.message;
+              redirectToLogin.current = true;
+              errorMessage.current = err2.message;
               setOpenErrorDialog(true);
               return false;
             });
 
         }).catch((err) => {
           setIsLoading(false);
-          redirect.current = true;
-          error.current = err.message;
+          redirectToLogin.current = true;
+          errorMessage.current = err.message;
           setOpenErrorDialog(true);
           return false;
-        }
-        );
+        });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -120,26 +125,29 @@ export const Home = memo(function Home() {
           width: isDesktopView ? 'clamp(500px,80%,60rem)' : 'clamp(350px, 95%, 60rem)', 
           minHeight: '100vh', // weird
           padding: isDesktopView ? '1rem' : '0.1rem',
-        }}>
+        }}
+      >
         <Box sx={{ height: isDesktopView ? '' : 'clamp(10%, 35vh, 35hv'}}>
-          <Box sx={{
-            position: 'relative',
-            top: isDesktopView ? '4.9rem' : '3rem',
-            left: '0rem',
-          }}>
+          <Box 
+            sx={{
+              position: 'relative',
+              top: isDesktopView ? '4.9rem' : '3rem',
+              left: '0rem',
+            }}
+          >
             <Fab size="small" 
               aria-label="edit" 
-            sx={{ marginRight: isDesktopView ? '10px' : '1px'}}
-              onClick={() => setShowLogOut(!showLogOut)}
-              >
-              <SettingsIcon />
+              sx={{ marginRight: isDesktopView ? '10px' : '1px'}}
+              onClick={() => setShowLogOutButton(!showLogOutButton)}
+            >
+            <SettingsIcon />
             </Fab>
             <Fab 
               variant="extended" 
               size="small" 
               aria-label="edit"
               onClick={handleLogOut}
-              sx={{ display: showLogOut ? '' : 'none' }}>
+              sx={{ display: showLogOutButton ? '' : 'none' }}>
               Log out
             </Fab>
           </Box>
@@ -149,16 +157,18 @@ export const Home = memo(function Home() {
               margin: isDesktopView ? '2rem' : '1rem 2rem', 
               textAlign: 'center', 
               bottom: isDesktopView ? '' : '2rem', 
-              position: isDesktopView ? '' : 'relative' }}>
-              My Notes 
+              position: isDesktopView ? '' : 'relative' 
+            }}
+          >
+            My Notes 
           </Typography>
         </Box>
         <Stack 
           direction="row" 
-        spacing={isDesktopView ? 2 : 1} 
-          sx={{ minHeight: '58.2vh'}}>
-          <Box 
-            sx={{ width: '20%' }}>
+          spacing={isDesktopView ? 2 : 1} 
+          sx={{ minHeight: '58.2vh'}}
+        >
+          <Box sx={{ width: '20%' }}>
           <TagListComponent 
             user_id={user_id.current}
             tagList={tagList} 
@@ -166,20 +176,19 @@ export const Home = memo(function Home() {
             noteList={noteList}
             noteDialogDispatch={noteDialogDispatch} 
             tagDialogDispatch={tagDialogDispatch}
-            />
+          />
           </Box>
-          <Box 
-            sx={{ width: '80%' }}>
+          <Box sx={{ width: '80%' }}>
           <NoteListComponent 
             user_id={user_id.current}
             noteList={noteList}
             noteListDispatch={noteListDispatch}
             noteDialogDispatch={noteDialogDispatch}
             setOpenErrorDialog={setOpenErrorDialog}
-            error={error}
+            errorMessage={errorMessage}
             setBackdrop={setBackdrop}
             tagList={tagList} 
-            />
+          />
           </Box>
         </Stack>
       <NoteDialog 
@@ -190,7 +199,7 @@ export const Home = memo(function Home() {
         noteDialogController={noteDialogController}
         noteDialogDispatch={noteDialogDispatch}
         setOpenErrorDialog={setOpenErrorDialog}
-        error={error}
+        errorMessage={errorMessage}
         setBackdrop={setBackdrop}
         isDesktopView={isDesktopView}
       />
@@ -201,16 +210,14 @@ export const Home = memo(function Home() {
         tagList={tagList}
         setTagList={setTagList}
         setOpenErrorDialog={setOpenErrorDialog}
-        error={error}
+        error={errorMessage}
         setBackdrop={setBackdrop}
         tagDialogController={tagDialogController}
         tagDialogDispatch={tagDialogDispatch}
       />
       <Dialog open={openErrorDialog} maxWidth='sm' fullWidth={true}>
         <DialogContent>
-          <Typography>
-            {error.current}
-          </Typography>
+          <Typography> {errorMessage.current} </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleErrorDialogOk}>Ok</Button>
@@ -220,8 +227,8 @@ export const Home = memo(function Home() {
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.snackbar}}
         open={backdrop}
       >
-        <CircularProgress color="inherit" />
+      <CircularProgress color="inherit"/>
       </Backdrop>
-      </Container>
+    </Container>
   )
 });

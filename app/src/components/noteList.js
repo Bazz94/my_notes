@@ -1,3 +1,8 @@
+/* 
+  This component appears on the Home page and shows a list of the users notes. It can be filtered 
+  to show only the notes that have a specific tag. Clicking on a note opens it up in the noteDialog
+  to be edited. 
+*/
 import ListItemText from '@mui/material/ListItemText';
 import ListItem from '@mui/material/ListItem';
 import Stack from '@mui/material/Stack';
@@ -8,7 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { memo, useMemo } from 'react';
 
 export const NoteListComponent = memo(function NoteListComponent({ user_id, noteList, noteListDispatch,
-   noteDialogDispatch, setOpenErrorDialog, error, setBackdrop, tagList }) {
+   noteDialogDispatch, setOpenErrorDialog, errorMessage, setBackdrop, tagList }) {
 
   function handleNoteClick(note) {
     const timeFormat = {
@@ -17,10 +22,8 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
       year: '2-digit'
     };
     const formatModified = new Date(note.modified).toLocaleDateString('en-GB', timeFormat);
-    noteDialogDispatch({
-      type: 'set',
-      open: true
-    });
+    // sets the ui of the noteDialog to contain the note that has been clicked on
+    // also opens the noteDialog
     noteDialogDispatch({
       type: 'set',
       id: note._id,
@@ -28,12 +31,13 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
       content: note.content,
       tags: note.tags,
       modified: formatModified,
+      open: true
     });
   }
 
   async function handleNoteDelete(id) {
     const data = { note_id: id };
-
+    // delete note in db
     setBackdrop(true);
     await fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`, {
       method: 'DELETE',
@@ -46,6 +50,7 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
         if (!res.ok) {
           throw Error(res.message);
         }
+        // Delete note locally
         noteListDispatch({
           type: 'delete',
           _id: id,
@@ -56,13 +61,14 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
         setBackdrop(false);
       }).catch((err) => {
         setBackdrop(false);
-        error.current = err.message;
+        errorMessage.current = err.message;
         setOpenErrorDialog(true);
         return false;
       }
     );
   }
 
+  // a list that is filtered according to the tag that is selected
   const filteredNoteList = useMemo(() => filterNotesList(tagList, noteList), [tagList, noteList]);
 
   return (
@@ -91,12 +97,15 @@ export const NoteListComponent = memo(function NoteListComponent({ user_id, note
 });
 
 function filterNotesList(_tagList, _noteList) {
+  // find selected tag
   const selectedTag = _tagList.find(item => item.selected === true);
   let visibleNotes = [];
+  // check if a tag is selected
   if (selectedTag === undefined) {
     visibleNotes = _noteList;
     return visibleNotes;
   }
+  // add notes from noteList that have the selected tag
   _noteList.forEach((note) => {
     if (note.tags.find(item => item._id === selectedTag._id) != null) {
       if (visibleNotes.find(item => item._id === note._id) == null) {

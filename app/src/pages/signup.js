@@ -21,10 +21,11 @@ export default function Login() {
   const [passwordCheck, setPasswordCheck] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
 
   async function handleSignUp() {
-    // Check that password match
+    // Verify that the passwords match that data has been entered
     if (password !== passwordCheck) {
       setError('Passwords do not match');
       setOpenErrorDialog(true);
@@ -46,6 +47,7 @@ export default function Login() {
       return false;
     }
 
+    // API call to verify that the email is unique
     const requestOptions = {
       method: 'POST',
       headers: {
@@ -67,7 +69,7 @@ export default function Login() {
         return res.json();
       }
     }).then((data) => {
-      // Login
+      // Login and go to Home page
       const cookieOptions = { expires: 7, domain: process.env.REACT_APP_DOMAIN, secure: true };
       Cookies.set('user-id', data, cookieOptions);
       setIsLoading(false);
@@ -80,12 +82,12 @@ export default function Login() {
     });
   }
 
-  const [openErrorDialog, setOpenErrorDialog] = useState(false);
-
+  
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
   }
 
+  
   return isLoading ? (<LoadingComponent />) : (
     <Container maxWidth="false"
       sx={{

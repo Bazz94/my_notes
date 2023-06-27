@@ -1,21 +1,21 @@
+/*
+  A custom useReducer that contains the users notes and handles interactions with them.
+*/
 import { useReducer } from "react";
 
-// action._id
-// action.title
-// action.content
-// action.tags
-// action.modified
-
+// Handles changes made to properties
 function reducer(list, action) {
-
   switch (action.type) {
+    // set 
     case 'set': {
       if (action.list === undefined) {
         throw Error('Incorrect properties for set on noteLustReducer');
       }
       return [...action.list];
     }
+    // add
     case 'add': {
+      // Check that the required vars are set from action param
       if (action._id === undefined || action.title === undefined || action.content === undefined
         || action.tags === undefined || action.modified === undefined || action.created === undefined
       ) {
@@ -31,12 +31,15 @@ function reducer(list, action) {
       }
       return [newNote, ...list];
     }
+    // edit
     case 'edit': {
+      // Check that the required vars are set from action param
       if (action._id === undefined && action.title === undefined && action.content === undefined
         && action.tags === undefined && action.modified === undefined && action.created === undefined
       ) {
         throw Error('Incorrect properties for edit on noteLustReducer');
       }
+      // If a property is set in the action param then it gets set in the reducers state
       return list.map(note => {
         if (note._id === action._id) {
           return Object.fromEntries(
@@ -53,7 +56,9 @@ function reducer(list, action) {
         }
       });
     }
+    // delete
     case 'delete': {
+      // Check that the required vars are set from action param
       if (action._id === undefined) {
         throw Error('Incorrect properties for delete on noteLustReducer');
       }
