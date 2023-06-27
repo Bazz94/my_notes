@@ -3,7 +3,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 
 
-export default function Loading(){
+export default function LoadingComponent(){
   
   return (
     <Container maxWidth="false"

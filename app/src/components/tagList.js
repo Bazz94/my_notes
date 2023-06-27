@@ -1,3 +1,7 @@
+/*
+  This component consists of the Add Note and Edit tag buttons as well as the list of tags that filter 
+  the notes displayed in the noteList Component.
+*/
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
@@ -11,6 +15,7 @@ export const TagListComponent = memo(function TagListComponent({
   user_id, tagList, setTagList, noteDialogDispatch, tagDialogDispatch}) {
 
   function handleAddNote() {
+    // opens the noteDialog 
     noteDialogDispatch({
       type: 'set',
       open: true
@@ -18,6 +23,7 @@ export const TagListComponent = memo(function TagListComponent({
   }
 
   function handleEditTags() {
+    // opens the tagDialog
     tagDialogDispatch({
       type: 'set',
       open: true
@@ -25,7 +31,7 @@ export const TagListComponent = memo(function TagListComponent({
   }
 
   async function handleTag(tag) {
-    // update tagList
+    // create a new tagList with updated tag data
     const newTagList = tagList.map((item) => {
       if (item !== tag) {
         // Unselect all other tags
@@ -34,7 +40,7 @@ export const TagListComponent = memo(function TagListComponent({
         }
         return {...item, selected: false};
       }
-      // Set tag 
+      // Change tag selected status
       return { ...item, selected: !item.selected };
     });
     setTagList([...newTagList]);
@@ -44,7 +50,8 @@ export const TagListComponent = memo(function TagListComponent({
       selected: !tag.selected,
     }
     
-    // set tagList in db
+    // update tagList in db
+    // This update is not important enough to disrupt the user
     fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`, {
       method: 'PATCH',
       headers: {
@@ -58,6 +65,9 @@ export const TagListComponent = memo(function TagListComponent({
             console.log('Tag selection updated');
           }
         }
+      }).catch((err) => {
+        console.log('Failed to update tagList');
+        return false;
       }
     );
   }

@@ -5,6 +5,7 @@ const app = express();
 const mongoose = require('mongoose');
 var cors = require('cors')
 
+// Connect to database
 mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true });
 const db = mongoose.connection;
 db.on('error', (error) => console.error(error));
@@ -15,10 +16,11 @@ var corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
+// Middleware
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
+// test route
 app.get('/', async (req, res) => {
   // test
     return res.status(200).json("myNotes api is working");
@@ -36,4 +38,5 @@ app.use('/notes', notesRouter);
 const tagsRouter = require('./routes/tags.js');
 app.use('/tags', tagsRouter);
 
+// Listen for connections
 app.listen(8080, () => console.log('Server Started'));

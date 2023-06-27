@@ -3,19 +3,19 @@ const router = express.Router();
 const User = require('../models/user.js');
 
 
-// All users (remove after testing)
-router.get('/all', async (req, res) => {
-  try {
-    const users = await User.find();
-    return res.status(200).json(users);
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-});
+// All users (only for testing purposes)
+// router.get('/all', async (req, res) => {
+//   try {
+//     const users = await User.find();
+//     return res.status(200).json(users);
+//   } catch (err) {
+//     return res.status(500).json({ message: err.message });
+//   }
+// });
 
 // Login user
 router.get('/', async (req, res) => {
-  //get email and password from body
+  //get email and password from header
   const authorizationHeader = req.headers.authorization;
   let email, password;
   if (authorizationHeader) {
@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
       password = credentials.password;
   }
   
+  // check that the required vars are set
   if (email == null) {
     return res.status(400).json({ message: "email is required" });
   }
@@ -49,7 +50,7 @@ router.get('/', async (req, res) => {
 
 // Sign up / Create user
 router.post('/', async (req, res) => {
-  // get email and password from body
+  // get email and password from header
   const authorizationHeader = req.headers.authorization;
   let email, password;
   if (authorizationHeader) {
@@ -57,7 +58,7 @@ router.post('/', async (req, res) => {
     email = credentials.email;
     password = credentials.password;
   }
-  
+  // check that the required vars are set
   if (email == null) {
     return res.status(400).json({ message: "email is required" });
   }
@@ -95,6 +96,7 @@ router.delete('/', async (req, res) => {
     if (users.length == 0) {
       return res.status(400).json({ message: "email not found" });
     }
+    // delete record
     await users.at(0).deleteOne();
     // return status
     return res.status(202).json("user deleted");
