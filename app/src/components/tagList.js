@@ -32,20 +32,16 @@ export const TagListComponent = memo(function TagListComponent({
         if (item.selected === false) {
           return item;
         }
-        const newItem = {...item};
-        newItem.selected = false;
-        return newItem;
+        return {...item, selected: false};
       }
       // Set tag 
-      const newItem = { ...item };
-      newItem.selected = !newItem.selected;
-      return newItem;
+      return { ...item, selected: !item.selected };
     });
     setTagList([...newTagList]);
 
     const data = {
       id: tag._id,
-      selected: tag.selected,
+      selected: !tag.selected,
     }
     
     // set tagList in db
