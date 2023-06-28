@@ -11,12 +11,7 @@ router.get('/:id', getUser,(req, res) => {
   const user = res.user;
   try {
     // sort by created date
-    user.notes.sort((a, b) => {
-      if (a === b) {
-        return 0;
-      }
-      return a.created < b.created ? 1 : -1;
-    });
+    user.notes.sort((a, b) => b.created - a.created);
     // return notes
     return res.status(200).json( user.notes);
   } catch(err) {
@@ -29,37 +24,24 @@ router.post('/:id', getUser, async (req, res) => {
   // Get user id from getUser
   const user = res.user;
   // Get note data from body
-  const noteTitle = req.body.title;
-  const noteContent = req.body.content;
-  const noteTags = req.body.tags;
-  // check that the required vars are set
-  if (noteTitle == null) {
-    return res.status(400).json({ message: "title is required" });
-  }
-  if (noteContent == null) {
-    return res.status(400).json({ message: "content is required" });
-  }
-  if (noteTags == null) {
-    return res.status(400).json({ message: "tags are required" });
+  const {title, content, tags} = req.body;
+  // Check that the required vars are set
+  if (title == null || content == null || tags == null) {
+    return res.status(400).json({ message: "note data is required" });
   }
   let note = {
-    title: noteTitle,
-    content: noteContent,
-    tags: noteTags
+    title: title,
+    content: content,
+    tags: tags
   };
   try {
     // create note in db
     user.notes.push(note);
     const newUser = await user.save();
     // sort by created date
-    user.notes.sort((a, b) => {
-      if (a === b) {
-        return 0;
-      }
-      return a.created < b.created ? 1 : -1;
-    });
+    user.notes.sort((a, b) => b.created - a.created);
     // Get the note that was created
-    const addedNote = newUser.notes.find((n) => n.title === noteTitle && n.content === noteContent);
+    const addedNote = newUser.notes.find((n) => n.title === title && n.content === content);
     // return created note
     return res.status(201).json(addedNote);
   } catch(err) {
@@ -72,22 +54,10 @@ router.patch('/:id', getUser, async (req, res) => {
   // Get user id from getUser
   const user_id = res.user._id;
   // Get note data from body
-  const note_id = req.body.note_id;
-  const newTitle = req.body.title;
-  const newContent = req.body.content;
-  const newTags = req.body.tags;
+  const { note_id, title, content, tags } = req.body;
   // check that the required vars are set
-  if (note_id == null) {
-    return res.status(400).json({ message: "note id is required" });
-  }
-  if (newTitle == null) {
-    return res.status(400).json({ message: "title is required" });
-  }
-  if (newContent == null) {
-    return res.status(400).json({ message: "content is required" });
-  }
-  if (newTags == null) {
-    return res.status(400).json({ message: "tags is required" });
+  if (note_id == null || title == null || content == null || tags == null) {
+    return res.status(400).json({ message: "note data is required" });
   }
   try {
     // Check if note exists
@@ -100,9 +70,9 @@ router.patch('/:id', getUser, async (req, res) => {
     const user = await User.findOneAndUpdate(
       { _id: user_id, 'notes._id': note_id },
       { $set: { 
-        'notes.$.title': newTitle,  
-        'notes.$.content': newContent,
-        'notes.$.tags': newTags, 
+        'notes.$.title': title,  
+        'notes.$.content': content,
+        'notes.$.tags': tags, 
         'notes.$.modified': modifiedDate 
       } }, { new: true } 
     );
@@ -126,18 +96,10 @@ router.patch('/tags/:id', getUser, async (req, res) => {
   try {
     // loop over individual edits that should be made
     for (let edit of editLog) {
-      const note_id = edit.note_id;
-      const tag_id = edit.tag_id;
-      const newName = edit.name;
+      const { note_id, tag_id, name } = edit;
       // check that the required vars are set per edit
-      if (note_id == null) {
-        return res.status(400).json({ message: "note changes required" });
-      }
-      if (tag_id == null) {
-        return res.status(400).json({ message: "note changes required" });
-      }
-      if (newName == null) {
-        return res.status(400).json({ message: "note changes required" });
+      if (note_id == null || tag_id == null || name == null) {
+        return res.status(400).json({ message: "note and tag data is required" });
       }
       // Check if note exists
       const note = await User.findOne({ _id: user_id, 'notes._id': note_id });
@@ -149,7 +111,7 @@ router.patch('/tags/:id', getUser, async (req, res) => {
         { _id: user_id, 'notes._id': note_id, 'notes.tags._id': tag_id }, // Match the user and note IDs
         {
           $set: {
-            'notes.$[note].tags.$[tag].name': newName
+            'notes.$[note].tags.$[tag].name': name
           }
         }, // Update the title and content of the matched note
         {
@@ -176,7 +138,7 @@ router.delete('/:id', getUser, async (req, res) => {
   const note_id = req.body.note_id;
   // check that the required vars are set
   if (note_id == null) {
-    return res.status(400).json({ message: "note id is required" });
+    return res.status(400).json({ message: "note data is required" });
   }
   // Check if note exists
   const note = await User.findOne({ _id: user_id, 'notes._id': note_id });
@@ -209,14 +171,13 @@ router.delete('/tags/:id', getUser, async (req, res) => {
   try {
     // Loop through delete requests
     for (let edit of editLog) {
-      const note_id = edit.note_id;
-      const tag_id = edit.tag_id;
+      const {note_id, tag_id} = edit;
       // check that the required vars are set per delete request
       if (note_id == null) {
-        return res.status(400).json({ message: "note id required" });
+        return res.status(400).json({ message: "note data required" });
       }
       if (tag_id == null) {
-        return res.status(400).json({ message: "tag id required" });
+        return res.status(400).json({ message: "tag data required" });
       }
       // Check if note exists
       const note = await User.findOne({ _id: user_id, 'notes._id': note_id });

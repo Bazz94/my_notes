@@ -3,16 +3,6 @@ const router = express.Router();
 const User = require('../models/user.js');
 
 
-// All users (only for testing purposes)
-// router.get('/all', async (req, res) => {
-//   try {
-//     const users = await User.find();
-//     return res.status(200).json(users);
-//   } catch (err) {
-//     return res.status(500).json({ message: err.message });
-//   }
-// });
-
 // Login user
 router.get('/', async (req, res) => {
   //get email and password from header

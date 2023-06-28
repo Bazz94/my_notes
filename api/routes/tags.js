@@ -21,17 +21,17 @@ router.post('/:id', getUser, async (req, res) => {
   // get user from getUser
   const user = res.user;
   // get name from body
-  const newName = req.body.name;
+  const name = req.body.name;
   // check that the required vars are set
-  if (newName == null) {
-    return res.status(400).json({ message: "tag name is required" });
+  if (name == null) {
+    return res.status(400).json({ message: "tag data is required" });
   }
   const tagData = {
-    name: newName,
+    name: name,
     selected: false
   };
   // Check if name is already used
-  const tag = user.tags.find((item) => item.name === newName);
+  const tag = user.tags.find((item) => item.name === name);
   if (tag != undefined) {
     return res.status(400).json({ message: "duplicate name" });
   }
@@ -39,7 +39,7 @@ router.post('/:id', getUser, async (req, res) => {
     // Create tag in db
     user.tags.push(tagData);
     const newUser = await user.save();
-    const newTag = newUser.tags.find((item) => item.name === newName)
+    const newTag = newUser.tags.find((item) => item.name === name)
     // return tag id
     return res.status(201).json(newTag._id);
   } catch (err) {
@@ -52,14 +52,12 @@ router.patch('/:id', getUser,  async (req, res) => {
   // Get user from getUser
   const user = res.user;
   // Get tag data from body
-  const id = req.body.id;
-  const newName = req.body.name;
-  const newSelected = req.body.selected;
+  const {id, name, selected} = req.body;
   // check that the required vars are set
   if (id == null) {
     return res.status(400).json({ message: "tag id is required" });
   }
-  if (newName == null && newSelected == null) {
+  if (name == null && selected == null) {
     return res.status(400).json({ message: "tag data is required" });
   }
   try {
@@ -68,18 +66,18 @@ router.patch('/:id', getUser,  async (req, res) => {
     if (tag === undefined) {
       return res.status(400).json({ message: "tag does not exist" });
     }
-    if (newName != null) {
+    if (name != null) {
       // Update tag name
-      tag.name = newName;
+      tag.name = name;
     }
-    if (newSelected != null) {      
+    if (selected != null) {      
       // Update tag in the note.tags data in db
-      if (newSelected === true){
+      if (selected === true){
         user.tags.forEach((item) => {
           item.selected = false;
         });
       }
-      tag.selected = newSelected;
+      tag.selected = selected;
     }
     const newUser = await user.save();
     // return status

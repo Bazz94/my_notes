@@ -159,6 +159,7 @@ export const NoteDialog = memo(function NoteDialog({
         type: 'set',
         tags: noteDialogController.tags.filter(item => item._id !== tag._id)
       });
+      return false;
     } 
     // tag is being added to the note
     const newNoteTags = [...noteDialogController.tags, tag]; 
