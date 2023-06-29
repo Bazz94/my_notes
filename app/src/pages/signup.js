@@ -4,15 +4,16 @@ import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import { useNavigate } from "react-router-dom";
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LoadingComponent from '../components/loading.js';
-import Cookies from 'js-cookie';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import {MyContext} from '../components/provider.js';
 
 export default function Login() {
+  const { user_id, updateUser_id } = useContext(MyContext);
   const navigate = useNavigate();
   const isDesktopView = useMediaQuery('(min-width:600px)');
 
@@ -68,10 +69,9 @@ export default function Login() {
       if (res.ok) {
         return res.json();
       }
-    }).then((data) => {
+    }).then((User_id_data) => {
       // Login and go to Home page
-      const cookieOptions = { expires: 7, domain: process.env.REACT_APP_DOMAIN, secure: true };
-      Cookies.set('user-id', data, cookieOptions);
+      updateUser_id(User_id_data);
       setIsLoading(false);
       navigate("/home");
     }).catch((err) => {

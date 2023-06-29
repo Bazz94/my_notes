@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Typography, Container } from "@mui/material";
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -9,10 +9,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import LoadingComponent from '../components/loading.js';
-import Cookies from 'js-cookie';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { MyContext } from '../components/provider.js';
 
-export default function Login() {
+export default function Login({ isLocalStorageAvailable }) {
+  const { user_id, updateUser_id } = useContext(MyContext);
   const navigate = useNavigate();
   const isDesktopView = useMediaQuery('(min-width:600px)');
 
@@ -21,6 +22,12 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
+
+  useEffect(() => {
+    if (user_id != null){
+      navigate("/home");
+    }
+  }, [navigate, user_id]);
 
   async function HandleLogin() {
     if (inputPassword === '') {
@@ -53,10 +60,9 @@ export default function Login() {
       if (res.ok) {
         return res.json();
       }
-    }).then((data) => {
+    }).then((User_id_data) => {
       // Login and navigate to Home page
-      const cookieOptions = { expires: 7, domain: process.env.REACT_APP_DOMAIN, secure: true };
-      Cookies.set('user-id', data, cookieOptions);
+      updateUser_id(User_id_data);
       setIsLoading(false);
       navigate("/home");
     }).catch((err) => {
@@ -132,3 +138,4 @@ export default function Login() {
     </Container>
   )
 }
+

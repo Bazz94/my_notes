@@ -4,7 +4,7 @@
   edit tags. 
 */
 import { Typography, Container } from "@mui/material";
-import { useEffect, useRef, useState, memo } from 'react';
+import { useEffect, useRef, useState, memo, useContext } from 'react';
 import { NoteListComponent } from '../components/noteList.js';
 import { TagListComponent } from '../components/tagList.js';
 import Box from '@mui/material/Box';
@@ -19,19 +19,20 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import Button from '@mui/material/Button';
-import Cookies from 'js-cookie';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import useNoteDialogControllerReducer from '../reducers/noteDialogControllerReducer.js';
 import useTagDialogControllerReducer from '../reducers/tagDialogControllerReducer.js';
 import useNoteListReducer from '../reducers/noteListReducer.js';
+import { MyContext } from '../components/provider.js';
 
 export const Home = memo(function Home() {
   if (process.env.REACT_APP_DEV_MODE === 'true') {
     console.log('rendered Home');
   }
+  const { user_id, updateUser_id } = useContext(MyContext);
+  console.log("user_id at home: ", user_id);
   const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
-  const user_id = useRef(null);
   const [isLoading, setIsLoading] = useState(true); // used while fetching notes and tags data
   const [backdrop, setBackdrop] = useState(false); // a backdrop is a loading screen that appears when the app is busy
   const errorMessage = useRef(null);
@@ -41,15 +42,14 @@ export const Home = memo(function Home() {
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
   function handleLogOut() {
-    Cookies.remove('user-id');
+    updateUser_id(null);
     navigate('/login');
   }
 
   function handleErrorDialogOk() {
     setOpenErrorDialog(false);
     if (redirectToLogin) {
-      Cookies.remove('user-id');
-      navigate("/login");
+      handleLogOut();
     }
   }
 
@@ -68,12 +68,11 @@ export const Home = memo(function Home() {
   // Get the users note and tag data from db
   useEffect(() => {
     //Check logged in
-    user_id.current = Cookies.get('user-id');
-    if (user_id.current == null) {
+    if (user_id == null) {
       navigate("/login");
     } else {
       // Get tags
-      fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id.current}`)
+      fetch(`${process.env.REACT_APP_API_URL}/tags/${user_id}`)
         .then((res) => {
           if (!res.ok) {
             throw Error("Server error");
@@ -85,7 +84,7 @@ export const Home = memo(function Home() {
             console.log('Fetched tags for home page');
           }
           // Get notes
-          fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id.current}`)
+          fetch(`${process.env.REACT_APP_API_URL}/notes/${user_id}`)
             .then((res) => {
               if (!res.ok) {
                 throw Error("Server error");
@@ -170,7 +169,7 @@ export const Home = memo(function Home() {
         >
           <Box sx={{ width: '20%' }}>
           <TagListComponent 
-            user_id={user_id.current}
+            user_id={user_id}
             tagList={tagList} 
             setTagList={setTagList}
             noteList={noteList}
@@ -180,7 +179,7 @@ export const Home = memo(function Home() {
           </Box>
           <Box sx={{ width: '80%' }}>
           <NoteListComponent 
-            user_id={user_id.current}
+            user_id={user_id}
             noteList={noteList}
             noteListDispatch={noteListDispatch}
             noteDialogDispatch={noteDialogDispatch}
@@ -192,7 +191,7 @@ export const Home = memo(function Home() {
           </Box>
         </Stack>
       <NoteDialog 
-        user_id={user_id.current}
+        user_id={user_id}
         tagList={tagList}
         noteList={noteList}
         noteListDispatch={noteListDispatch}
@@ -204,7 +203,7 @@ export const Home = memo(function Home() {
         isDesktopView={isDesktopView}
       />
       <TagDialog 
-        user_id={user_id.current}
+        user_id={user_id}
         noteList={noteList}
         noteListDispatch={noteListDispatch}
         tagList={tagList}
