@@ -31,7 +31,6 @@ export const Home = memo(function Home() {
     console.log('rendered Home');
   }
   const { user_id, updateUser_id } = useContext(MyContext);
-  console.log("user_id at home: ", user_id);
   const isDesktopView = (window.innerHeight / window.innerWidth) < 1.5; 
   const [isLoading, setIsLoading] = useState(true); // used while fetching notes and tags data
   const [backdrop, setBackdrop] = useState(false); // a backdrop is a loading screen that appears when the app is busy

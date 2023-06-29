@@ -245,7 +245,9 @@ export const TagDialog = memo(function TagDialog({
           throw Error(res.message);
         }
         setBackdrop(false);
-        console.log('Tag deleted');
+        if (process.env.REACT_APP_DEV_MODE === 'true') {
+          console.log('Tag deleted');
+        }
       }).catch((err) => {
         // revet changes
         setTagList(tempTagList);

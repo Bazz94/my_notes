@@ -8,9 +8,7 @@ const cookieOptions = { expires: 7, domain: process.env.REACT_APP_DOMAIN, secure
 // Create a provider component
 function MyUserIDProvider({ children }) {
   const isLocalStorageAvailable = useRef(checkLocalStorageAvailability());
-  console.log('is localStorage Available: ',isLocalStorageAvailable.current);
   const [user_id, setUser_id] = useState(isLocalStorageAvailable.current ? Cookies.get('user-id') : null);
-  console.log("Initial user_id: ", user_id);
 
   const updateUser_id = (newValue) => {
     setUser_id(newValue);
